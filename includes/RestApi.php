@@ -472,14 +472,34 @@ class RestApi {
 
         $frontend = new Frontend();
         $merged_schemas = $frontend->assemble_schemas();
+
+        // Must resolve variables + dedup BEFORE matching, same as Frontend::render_jsonld
+        $merged_schemas = array_map( function( $s ) { unset( $s['_t1schema_meta'] ); return $s; }, $merged_schemas );
+        $merged_schemas = VariableResolver::resolve( $merged_schemas, $post_id );
+
+        // Deduplicate nodes with the same @id
+        $by_id = [];
+        $no_id = [];
+        foreach ( $merged_schemas as $node ) {
+            $nid = $node['@id'] ?? null;
+            if ( $nid ) {
+                $by_id[ $nid ] = isset( $by_id[ $nid ] ) ? array_merge( $by_id[ $nid ], $node ) : $node;
+            } else {
+                $no_id[] = $node;
+            }
+        }
+        $merged_schemas = array_merge( array_values( $by_id ), $no_id );
         
         // Restore context
         $wp_query = $original_query;
         $post     = $original_post;
         wp_reset_postdata();
 
+        // Resolve the local @id values too so we can match them
+        $resolved_locals = VariableResolver::resolve( $locals, $post_id );
+
         $results = [];
-        foreach ( (array) $locals as $i => $schema ) {
+        foreach ( (array) $resolved_locals as $i => $schema ) {
             $type = $schema['@type'] ?? 'Unknown';
             $id   = $schema['@id'] ?? null;
             
@@ -491,7 +511,6 @@ class RestApi {
                     $validation_target = $ms;
                     break;
                 } elseif ( ! $id && isset( $ms['@type'] ) && $ms['@type'] === $type ) {
-                    // Match by type if no @id is present
                     $validation_target = $ms;
                     break;
                 }
@@ -499,7 +518,7 @@ class RestApi {
 
             $results[] = [
                 'index'  => $i,
-                'type'   => $type,
+                'type'   => $locals[ $i ]['@type'] ?? 'Unknown',
                 'health' => SchemaValidator::validate( $validation_target ),
             ];
         }
