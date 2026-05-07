@@ -46,7 +46,11 @@ export default function PropertyCard({
         <div className="sp-flex sp-items-center sp-gap-2">
           <span className="sp-font-mono sp-text-sm sp-font-medium sp-text-ink-0">{name}</span>
           {isRequired && (
-            <span className="sp-rounded sp-bg-red-100 sp-px-1.5 sp-py-0.5 sp-text-2xs sp-font-semibold sp-text-red-600">
+            <span className={`sp-rounded sp-px-1.5 sp-py-0.5 sp-text-2xs sp-font-semibold ${
+              hasValue
+                ? 'sp-bg-green-100 sp-text-green-600'
+                : 'sp-bg-red-100 sp-text-red-600'
+            }`}>
               Required
             </span>
           )}
@@ -150,7 +154,11 @@ export default function PropertyCard({
   );
 }
 
+const PRIMITIVE_TYPES = ['Text', 'URL', 'Date', 'DateTime', 'Time', 'Number', 'Integer', 'Float', 'Boolean'];
+
 function isObjectType(type) {
+  const base = type.replace('[]', '');
+  if (PRIMITIVE_TYPES.includes(base)) return false;
   if (type.endsWith('[]')) return true;
   const objects = ['Person', 'Organization', 'PostalAddress', 'GeoCoordinates', 'Offer',
     'Review', 'AggregateRating', 'Rating', 'Brand', 'Place', 'SearchAction',

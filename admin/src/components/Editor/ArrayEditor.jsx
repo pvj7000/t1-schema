@@ -1,8 +1,11 @@
 import React from 'react';
 import ObjectEditor from './ObjectEditor';
 
+const PRIMITIVE_TYPES = ['Text', 'URL', 'Date', 'DateTime', 'Time', 'Number', 'Integer', 'Float', 'Boolean'];
+
 /**
- * ArrayEditor — Renders a list of ObjectEditors for array types (e.g. Question[]).
+ * ArrayEditor — Renders a list of items for array types.
+ * Handles both complex objects (e.g. Question[]) and primitives (e.g. URL[]).
  */
 export default function ArrayEditor({
   itemType,
@@ -12,8 +15,10 @@ export default function ArrayEditor({
   activeVariableField,
   setActiveVariableField,
 }) {
+  const isPrimitive = PRIMITIVE_TYPES.includes(itemType);
+
   const handleAddItem = () => {
-    onChange([...items, { '@type': itemType }]);
+    onChange([...items, isPrimitive ? '' : { '@type': itemType }]);
   };
 
   const handleUpdateItem = (index, newData) => {
@@ -43,14 +48,25 @@ export default function ArrayEditor({
               Remove
             </button>
           </div>
-          <ObjectEditor
-            type={itemType}
-            data={item}
-            onChange={(newData) => handleUpdateItem(index, newData)}
-            typeDefs={typeDefs}
-            activeVariableField={activeVariableField}
-            setActiveVariableField={setActiveVariableField}
-          />
+
+          {isPrimitive ? (
+            <input
+              type="text"
+              value={typeof item === 'string' ? item : ''}
+              onChange={(e) => handleUpdateItem(index, e.target.value)}
+              placeholder={itemType === 'URL' ? 'https://…' : `Enter ${itemType}`}
+              className="sp-w-full sp-rounded-lg sp-border sp-border-surface-3 sp-bg-white sp-px-3 sp-py-2 sp-text-sm sp-text-ink-0 sp-outline-none sp-transition-colors focus:sp-border-brand-400 focus:sp-ring-1 focus:sp-ring-brand-200"
+            />
+          ) : (
+            <ObjectEditor
+              type={itemType}
+              data={item}
+              onChange={(newData) => handleUpdateItem(index, newData)}
+              typeDefs={typeDefs}
+              activeVariableField={activeVariableField}
+              setActiveVariableField={setActiveVariableField}
+            />
+          )}
         </div>
       ))}
 
