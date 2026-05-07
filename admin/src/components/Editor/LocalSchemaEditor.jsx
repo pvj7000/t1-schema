@@ -343,20 +343,73 @@ export default function LocalSchemaEditor({ post, onBack }) {
           )}
 
           {/* JSON Preview */}
-          <div className="sp-rounded-xl sp-border sp-border-surface-3 sp-bg-white sp-shadow-bento">
-            <div className="sp-border-b sp-border-surface-2 sp-px-4 sp-py-3">
-              <h3 className="sp-text-xs sp-font-semibold sp-uppercase sp-tracking-wider sp-text-ink-3">
-                JSON-LD Output
-              </h3>
-            </div>
-            <pre className="sp-max-h-64 sp-overflow-auto sp-p-4 sp-font-mono sp-text-xs sp-text-ink-2">
-              {JSON.stringify(activeSchema || {}, null, 2)}
-            </pre>
-          </div>
+          <JsonPreview schema={activeSchema} />
         </div>
       </div>
     </div>
   );
 }
 
+/**
+ * JSON-LD preview panel with copy-to-clipboard button.
+ */
+function JsonPreview({ schema }) {
+  const [copied, setCopied] = useState(false);
+  const json = JSON.stringify(schema || {}, null, 2);
 
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(json);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Fallback for older browsers / non-HTTPS contexts
+      const ta = document.createElement('textarea');
+      ta.value = json;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }
+  };
+
+  return (
+    <div className="sp-rounded-xl sp-border sp-border-surface-3 sp-bg-white sp-shadow-bento">
+      <div className="sp-flex sp-items-center sp-justify-between sp-border-b sp-border-surface-2 sp-px-4 sp-py-3">
+        <h3 className="sp-text-xs sp-font-semibold sp-uppercase sp-tracking-wider sp-text-ink-3">
+          JSON-LD Output
+        </h3>
+        <button
+          onClick={handleCopy}
+          className={`sp-flex sp-items-center sp-gap-1.5 sp-rounded-lg sp-border sp-px-2.5 sp-py-1 sp-text-2xs sp-font-medium sp-transition-all ${
+            copied
+              ? 'sp-border-green-300 sp-bg-green-50 sp-text-green-600'
+              : 'sp-border-surface-3 sp-text-ink-3 hover:sp-bg-surface-1 hover:sp-text-ink-1'
+          }`}
+        >
+          {copied ? (
+            <>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              Copied
+            </>
+          ) : (
+            <>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+              Copy
+            </>
+          )}
+        </button>
+      </div>
+      <pre className="sp-max-h-64 sp-overflow-auto sp-p-4 sp-font-mono sp-text-xs sp-text-ink-2">
+        {json}
+      </pre>
+    </div>
+  );
+}
