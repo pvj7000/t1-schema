@@ -1,0 +1,897 @@
+# t1 Schema — Documentation
+
+**Version:** 1.4.6  
+**Author:** teil1 development  
+**Requires:** WordPress 6.0+, PHP 8.0+  
+**License:** GPL v2 or later
+
+---
+
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Installation](#installation)
+3. [Core Concepts](#core-concepts)
+4. [Admin Dashboard](#admin-dashboard)
+   - [Schema Quality Score](#schema-quality-score)
+   - [Recommended Rule Templates](#recommended-rule-templates)
+   - [Admin Bar Indicator](#admin-bar-indicator)
+5. [Global Schemas](#global-schemas)
+6. [Schema Rules](#schema-rules)
+7. [Site Map](#site-map)
+8. [Per-Page Local Schemas](#per-page-local-schemas)
+9. [Post Editor Meta Box](#post-editor-meta-box)
+10. [Dynamic Variables](#dynamic-variables)
+11. [Health Validation](#health-validation)
+12. [WP-CLI Reference](#wp-cli-reference)
+13. [Schema Types Reference](#schema-types-reference)
+14. [Priority & Override Logic](#priority--override-logic)
+15. [mu-Plugin Conflict Handling](#mu-plugin-conflict-handling)
+16. [Hooks & Filters](#hooks--filters)
+17. [Troubleshooting](#troubleshooting)
+
+---
+
+## Overview
+
+t1 Schema is a high-performance Schema.org JSON-LD markup plugin for WordPress. It provides three layers of structured data management:
+
+- **Global Schemas** — site-wide markup that fires on every page (e.g. Organization, WebSite)
+- **Schema Rules** — conditional templates that target specific page types, archives, taxonomies, and more
+- **Local Overrides** — per-page schemas stored in post_meta for granular control
+
+All schema data is output as a single `<script type="application/ld+json">` tag in `<head>`, using the `@graph` pattern when multiple schemas exist on the same page.
+
+---
+
+## Installation
+
+1. Upload `t1-schema.zip` via **Plugins → Add New → Upload Plugin**
+2. Activate the plugin
+3. Navigate to **t1 Schema** in the admin sidebar
+
+On first activation, the plugin:
+- Creates the `t1schema_globals` and `t1schema_rules` database tables
+- Seeds a default **Organization** and **WebSite** schema using your site name and URL
+- Suppresses any existing `teil1-content` mu-plugin schema output to prevent duplicates
+
+---
+
+## Core Concepts
+
+### The Three Layers
+
+```
+┌──────────────────────────────────────────────┐
+│  Layer 3: LOCAL OVERRIDES (highest priority) │
+│  Per-post/page via post_meta                 │
+│  Managed in: Pages tab or Post Editor        │
+├──────────────────────────────────────────────┤
+│  Layer 2: SCHEMA RULES                       │
+│  Conditional templates with targeting        │
+│  Managed in: Rules tab                       │
+├──────────────────────────────────────────────┤
+│  Layer 1: SITE-WIDE GLOBALS (lowest)         │
+│  Always fires on every page                  │
+│  Managed in: Globals tab                     │
+└──────────────────────────────────────────────┘
+```
+
+**Priority:** Local Override > Schema Rule > Global.
+
+When multiple layers output the same `@type`, the higher-priority layer wins. For example, if you have a global `Article` and a local override `Article` on a specific post, only the local version renders.
+
+### Dynamic Variables
+
+Instead of hardcoding values, use `{{variable}}` tags in any schema property. These are resolved at render time based on the current page context.
+
+Example: `{{post_title}}` becomes the actual post title on each page.
+
+---
+
+## Admin Dashboard
+
+Access via **WordPress Admin → t1 Schema**. The dashboard has five tabs:
+
+| Tab | Icon | Purpose |
+|-----|------|---------|
+| **Globals** | 📊 | Site-wide schemas (Organization, WebSite, etc.) |
+| **Rules** | 🎯 | Conditional schemas targeting specific page types |
+| **Site Map** | 🗺️ | Hierarchical overview of all URL contexts with coverage |
+| **Pages** | 📄 | Browse posts/pages and manage per-page schemas |
+| **Help** | 📖 | Variable reference, workflow guide, health status explainer |
+
+### Schema Quality Score
+
+At the top of the dashboard, an animated **Score Ring** (0–100) shows an objective quality metric for your site's schema markup. The score is calculated from four weighted factors:
+
+| Factor | Weight | What it measures |
+|--------|--------|-----------------|
+| **Coverage** | 40% | What percentage of your site's URL contexts (post types, archives, taxonomies, search, 404) have schema rules or globals covering them |
+| **Health** | 30% | What percentage of all active schemas pass validation (no missing required properties) |
+| **Depth** | 20% | How many recommended/required properties are actually filled vs. available across all schemas |
+| **Diversity** | 10% | How many distinct `@type`s you use (capped at 8 for 100%) |
+
+**Grades:** A (90+), B (75+), C (60+), D (40+), F (below 40)
+
+### Recommended Rule Templates
+
+Below the score, t1 Schema suggests **opt-in rule templates** for common use cases. These are sensible defaults that are *not* activated automatically — you choose which to enable.
+
+| Template | What it does |
+|----------|-------------|
+| **Article → All Blog Posts** | Adds Article schema with headline, dates, author, and image to every `post` |
+| **WebPage → All Pages** | Adds WebPage schema with name, URL, and excerpt to every `page` |
+| **BreadcrumbList → All Singulars** | Adds breadcrumb navigation schema for enhanced SERP display |
+| **CollectionPage → Post Archives** | Adds CollectionPage to the blog archive |
+| **SearchResultsPage → Search** | Adds SearchResultsPage schema to the search results page |
+
+Click **Activate** on any template to create the rule instantly. Already-active templates are hidden.
+
+### Admin Bar Indicator
+
+When viewing the frontend as an admin, the **WordPress admin bar** shows a 🔮 icon with the count of active schemas on the current page.
+
+**Hover** to see a dropdown listing each active schema type with its property count. Click to jump to the t1 Schema dashboard.
+
+This works on all page types — singulars, archives, search, 404 — and shows the exact schemas that would appear in the JSON-LD output.
+
+---
+
+## Global Schemas
+
+Global schemas fire on **every page** of your site. Use these for:
+- Organization identity
+- WebSite with search action
+- Person (site owner)
+
+### Creating a Global Schema
+
+1. Click **+ New Global** in the Globals tab
+2. Select a Schema.org type from the dropdown
+3. Fill in properties — use the `{ }` button to insert dynamic variables
+4. Click **Create Schema**
+
+### Editing & Deleting
+
+- Hover over any schema card → click **Edit** or the trash icon
+- The sidebar shows a live **JSON-LD Preview** and **Rich Snippet Preview** as you edit
+
+### Health Badges
+
+Each schema card shows a colored badge:
+- 🟢 **Valid** — all required properties are set
+- 🟡 **N warnings** — recommended properties are missing (click to inspect)
+- 🔴 **N errors** — required properties are missing (click to inspect)
+
+Click any warning/error badge to expand the **Health Detail** panel with specific messages and fix suggestions.
+
+---
+
+## Schema Rules
+
+Rules are the most powerful feature. They let you apply schema templates to specific WordPress contexts **without** editing each post individually.
+
+### How Rules Work
+
+Each rule has:
+- **Conditions** — one or more targeting conditions (AND logic)
+- **Schema Type** — the Schema.org type to output
+- **Schema Data** — property values (can use dynamic variables)
+- **Priority** — lower number = higher priority (default: 10)
+
+### Available Conditions
+
+#### Single Content
+| Condition | Targets |
+|-----------|---------|
+| All Posts (single) | Every individual blog post |
+| All Pages (single) | Every individual page |
+| All [CPT] (single) | Every individual post of a custom post type |
+
+#### Archives
+| Condition | Targets |
+|-----------|---------|
+| Blog Index | The blog listing page |
+| [CPT] Archive | Custom post type archive page (e.g. `/referenzen/`) |
+
+#### Taxonomies
+| Condition | Targets |
+|-----------|---------|
+| All Categories | Every category archive |
+| All Tags | Every tag archive |
+| Category: [name] | A specific category archive |
+| Tag: [name] | A specific tag archive |
+| All [Custom Tax] | Every custom taxonomy archive |
+| [Custom Tax]: [term] | A specific custom taxonomy term archive |
+
+#### Special Pages
+| Condition | Targets |
+|-----------|---------|
+| Front Page | The homepage (static or dynamic) |
+| Search Results | The search results page |
+| 404 Page | The 404 error page |
+| Date Archives | All date-based archive pages |
+| All Author Archives | Every author archive |
+| Author: [name] | A specific author's archive |
+
+### Creating a Rule
+
+1. Go to the **Rules** tab → click **+ New Rule**
+2. Add one or more conditions using the dropdown
+3. Select a Schema.org type
+4. Fill in properties with dynamic variables
+5. Set priority (optional — default is 10)
+6. Click **Create Rule**
+
+### Example Rules
+
+**Article schema for all blog posts:**
+- Condition: `All Posts (single)`
+- Type: `Article`
+- Properties: `headline: {{post_title}}`, `datePublished: {{post_date}}`, `image: {{featured_image_url}}`
+
+**CollectionPage for CPT archive:**
+- Condition: `Referenzen Archive`
+- Type: `CollectionPage`
+- Properties: `name: {{archive_title}}`, `url: {{archive_url}}`
+
+**BreadcrumbList for all category archives:**
+- Condition: `All Categories`
+- Type: `BreadcrumbList`
+- Properties: use JSON import for complex nested structure
+
+### Multiple Conditions (AND Logic)
+
+When a rule has multiple conditions, **all must match** for the rule to fire. This is useful for very specific targeting, e.g.:
+- Condition 1: `All Posts (single)` + Condition 2: `Category: Marketing`
+- → Only fires on blog posts in the "Marketing" category
+
+---
+
+## Site Map
+
+The **Site Map** tab shows a complete, hierarchical view of every URL context on your WordPress site:
+
+```
+🏠 Front Page               → Organization, WebSite ✓ Covered
+📝 Blog Index                → [no rules]
+📄 Pages (12 items)          → WebPage ✓ Covered
+📰 Posts (34 items)          → Article ✓ Covered
+📁 Referenzen (8 items)      → CreativeWork ✓ Covered
+   📋 Referenzen Archive     → CollectionPage ✓ Covered
+📁 Lexikon (15 items)        → [no rules]
+   📋 Lexikon Archive        → [no rules]
+🏷️ Categories
+   ├── Marketing (5 items)   → [no rules]
+   └── SEO (3 items)         → [no rules]
+👤 Author Archives           → [no rules]
+🔍 Search Results            → [no rules]
+```
+
+**Features:**
+- **Coverage progress bar** — shows what % of your site contexts have schema rules
+- **Expand/collapse** — click the arrow to see children (taxonomy terms, CPT archives)
+- **Quick-create** — hover over any uncovered context → click **"+ Add Rule"** to jump directly to the Rule Builder with the condition pre-filled
+
+---
+
+## Per-Page Local Schemas
+
+For individual posts and pages, you can add **local schemas** that override any global or rule-based schema of the same `@type`.
+
+### Via the Pages Tab
+
+1. Go to the **Pages** tab in the t1 Schema dashboard
+2. Use the search bar, post type filter, or schema filter to find your page
+3. Click **"+ Add Schema"** or **"Edit Schema"** on any row
+4. The Local Schema Editor opens with:
+   - Post context bar (title, URL, type)
+   - Multi-schema tabs (if the page has multiple schemas)
+   - Override toggle per schema
+   - Property editor with variable picker
+   - Health validation sidebar
+5. Click **Save Changes**
+
+### Filters
+
+| Filter | Shows |
+|--------|-------|
+| All types | All public post types including CPTs |
+| With schema | Only pages that have local schemas |
+| Without schema | Only pages without local schemas |
+
+The post type dropdown dynamically lists **all registered public post types** with counts — including any custom post types from plugins like `teil1_referenz`, `teil1_lexikon`, etc.
+
+### Storage Format
+
+Local schemas are stored in the `_t1schema_local` post meta key as a JSON array. Each entry has the following structure:
+
+```json
+[
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": "My Service",
+    "url": "{{post_url}}",
+    "_t1schema_meta": {
+      "override_global": true,
+      "status": "active"
+    }
+  }
+]
+```
+
+The `_t1schema_meta` object is internal metadata stripped before rendering:
+- `override_global` (bool) — if `true`, this schema replaces any global/rule schema of the same `@type`
+- `status` — `"active"` or `"draft"` (draft schemas are skipped during rendering)
+
+---
+
+## Post Editor Meta Box
+
+When editing any post, page, or custom post type in the WordPress editor, a **🔮 t1 Schema — Local Schemas** panel appears in the sidebar.
+
+**Features:**
+- Shows all active local schemas on the current post
+- Health badge per schema (Valid / Warnings / Errors)
+- Inline error/warning messages (first 3 shown)
+- Override indicator ("↑ Overrides global" or "∥ Coexists with global")
+- **Remove** button per schema (with visual strikethrough)
+- **Quick Add** dropdown — select a type and save. Common types auto-populate:
+  - Article → `{{post_title}}`, `{{post_date}}`, `{{post_modified}}`, `{{featured_image_url}}`
+  - BlogPosting → same as Article
+  - WebPage → `{{post_title}}`, `{{post_url}}`, `{{post_date}}`, `{{post_modified}}`
+  - Product → `{{post_title}}`, `{{featured_image_url}}`
+- **Open Full Editor →** link to the t1 Schema dashboard
+
+---
+
+## Dynamic Variables
+
+Use `{{variable_name}}` in any schema property value. Variables are resolved at render time on the frontend.
+
+### Post Variables
+
+| Variable | Description | Example Output |
+|----------|-------------|----------------|
+| `{{post_title}}` | Post/page title | `My Blog Post` |
+| `{{post_excerpt}}` | Post excerpt (auto-generated if empty) | `A short summary…` |
+| `{{post_content}}` | Full content (plain text) | `The full body text…` |
+| `{{post_date}}` | Publish date (ISO 8601) | `2026-05-04T12:00:00+02:00` |
+| `{{post_modified}}` | Last modified date (ISO 8601) | `2026-05-04T15:30:00+02:00` |
+| `{{post_url}}` | Full permalink | `https://example.com/my-post/` |
+| `{{post_id}}` | Post ID | `42` |
+| `{{post_slug}}` | URL slug | `my-post` |
+| `{{post_type}}` | Post type slug | `post` |
+| `{{featured_image_url}}` | Featured image URL (full size) | `https://example.com/wp-content/uploads/hero.jpg` |
+| `{{featured_image_alt}}` | Featured image alt text | `Hero image` |
+
+### Author Variables
+
+| Variable | Description | Example Output |
+|----------|-------------|----------------|
+| `{{author_name}}` | Author display name | `Max Mustermann` |
+| `{{author_url}}` | Author archive URL | `https://example.com/author/max/` |
+| `{{author_description}}` | Author bio | `Digital marketing specialist…` |
+| `{{author_avatar_url}}` | Author avatar (96px) | `https://secure.gravatar.com/…` |
+
+### Site Variables
+
+| Variable | Description | Example Output |
+|----------|-------------|----------------|
+| `{{site_name}}` | Site title (Settings → General) | `teil1` |
+| `{{site_url}}` | Site home URL | `https://teil1.de/` |
+| `{{site_description}}` | Site tagline | `Code Gebaut` |
+| `{{site_logo}}` | Custom logo URL | `https://teil1.de/…/logo.svg` |
+| `{{site_language}}` | Site language | `de-DE` |
+
+### Taxonomy Variables
+
+| Variable | Description | Example Output |
+|----------|-------------|----------------|
+| `{{primary_category}}` | First category name | `Marketing` |
+| `{{primary_category_url}}` | First category URL | `https://example.com/category/marketing/` |
+| `{{categories}}` | Comma-separated category names | `Marketing, SEO` |
+| `{{tags}}` | Comma-separated tag names | `schema, seo, structured-data` |
+
+### Archive Variables
+
+These resolve on non-singular pages (archives, taxonomy pages, search):
+
+| Variable | Description | Example Output |
+|----------|-------------|----------------|
+| `{{term_name}}` | Current taxonomy term name | `Marketing` |
+| `{{term_description}}` | Term description | `All marketing articles` |
+| `{{term_url}}` | Term archive URL | `https://example.com/category/marketing/` |
+| `{{archive_title}}` | Archive page title | `Referenzen` |
+| `{{archive_url}}` | Current archive URL | `https://example.com/referenzen/` |
+| `{{search_query}}` | Current search query | `schema markup` |
+
+### Custom Meta Variables
+
+Access any `post_meta` value:
+
+| Variable | Description |
+|----------|-------------|
+| `{{meta:custom_key}}` | Value of `get_post_meta($post_id, 'custom_key', true)` |
+| `{{meta:_price}}` | Example: WooCommerce price field |
+| `{{meta:teil1_client}}` | Example: custom client field |
+
+### Custom Variables (Site Constants)
+
+Define your own reusable values in **Dashboard → Custom Variables**. These are site-wide constants — the same value everywhere, regardless of which page renders.
+
+**Use case:** Your phone number, address, logo URL, or any value that appears in multiple schemas.
+
+**How to use:**
+
+1. Open the t1 Schema dashboard → scroll to the **Custom Variables** section
+2. Add a key (e.g. `phone`) and a value (e.g. `+43 1 234 5678`)
+3. Click **Save Changes**
+4. Use `{{custom.phone}}` in any schema property — it resolves to `+43 1 234 5678` on every page
+
+| Variable | Description |
+|----------|-------------|
+| `{{custom.phone}}` | Your phone number |
+| `{{custom.address}}` | Business address |
+| `{{custom.logo_url}}` | Logo image URL |
+| `{{custom.legal_name}}` | Legal company name |
+| `{{custom.social_twitter}}` | Twitter/X profile URL |
+
+Custom variables are stored as a single WP option (`t1schema_custom_variables`) and are also accessible in the variable picker when editing schemas. They appear under the **Custom** category with a preview of their current value.
+
+---
+
+## Health Validation
+
+t1 Schema validates every schema against its type definition from the registry.
+
+### Error Levels
+
+| Level | Meaning | Badge Color |
+|-------|---------|-------------|
+| **Error** | A required property is missing or empty | 🔴 Red |
+| **Warning** | A recommended property is missing | 🟡 Yellow |
+| **Valid** | All required and recommended properties are set | 🟢 Green |
+
+### Where Validation Shows
+
+1. **Dashboard** — health badge on each schema card (click to expand details)
+2. **Global Editor sidebar** — live validation updates as you type
+3. **Local Editor sidebar** — per-schema health with fix suggestions
+4. **Post Editor Meta Box** — compact health badge + inline error messages
+5. **WP-CLI** — `wp t1-schema health` outputs a full report
+
+### Fix Suggestions
+
+When you expand a health detail panel, each issue includes:
+- The exact error/warning message (e.g. "Missing required property: 'headline' for type 'Article'")
+- A suggested fix with the specific variable to use (e.g. "Use `{{post_title}}`")
+
+---
+
+## WP-CLI Reference
+
+All commands are under the `wp t1-schema` namespace.
+
+### Global Schemas
+
+```bash
+# List all global schemas
+wp t1-schema globals
+wp t1-schema globals --format=json
+
+# Create a new global schema
+wp t1-schema create Organization --name="teil1" --url="https://teil1.de"
+wp t1-schema create WebSite --name="My Site" --url="https://example.com"
+wp t1-schema create Product --name="My Product" --status=draft
+
+# Create from a JSON file (recommended for complex schemas / {{variables}})
+wp t1-schema create Article --json-file=article.json
+
+# Update a schema
+wp t1-schema update 1 --name="New Name"
+wp t1-schema update 1 --json-file=updated.json
+wp t1-schema update 1 --status=draft
+
+# Delete a schema
+wp t1-schema delete 3
+wp t1-schema delete 3 --yes
+
+# Inspect full JSON-LD
+wp t1-schema inspect 1
+wp t1-schema inspect 1 --resolved   # resolves all {{variables}}
+```
+
+### Local Schemas (Per-Post)
+
+```bash
+# List local schemas on a post
+wp t1-schema local 42
+wp t1-schema local 42 --format=json
+
+# Add a local schema to a post
+wp t1-schema set-local 42 Article --json='{"headline":"{{post_title}}","datePublished":"{{post_date}}"}'
+
+# Replace all existing locals (instead of appending)
+wp t1-schema set-local 42 Article --json='{"headline":"{{post_title}}"}' --replace
+
+# Don't override global schema of same type
+wp t1-schema set-local 42 Organization --json='{"name":"Local Branch"}' --no-override
+
+# Clear all local schemas from a post
+wp t1-schema clear-local 42
+wp t1-schema clear-local 42 --yes
+```
+
+### Schema Rules
+
+```bash
+# List all schema rules
+wp t1-schema rules
+wp t1-schema rules --format=json
+
+# Create a rule — Article for all blog posts
+wp t1-schema add-rule Article \
+  --conditions='[{"type":"singular","value":"post"}]' \
+  --json='{"headline":"{{post_title}}","datePublished":"{{post_date}}"}'
+
+# Create a rule — CollectionPage for a CPT archive
+wp t1-schema add-rule CollectionPage \
+  --conditions='[{"type":"archive","value":"teil1_referenz"}]' \
+  --name="Referenz Archive"
+
+# Delete a rule
+wp t1-schema delete-rule 3
+wp t1-schema delete-rule 3 --yes
+```
+
+### Health Check
+
+```bash
+wp t1-schema health
+wp t1-schema health --format=json
+```
+
+### Render — Preview Merged Output
+
+Shows the final JSON-LD that would render in `<head>` for a specific post — globals + matching rules + local overrides, with variable resolution.
+
+```bash
+wp t1-schema render 42
+wp t1-schema render 42 --raw      # without variable resolution
+wp t1-schema render 42 --layers   # show each layer before merging
+```
+
+### Export — Full Backup
+
+Exports all globals, rules, and local schemas to JSON. Use for site migration.
+
+```bash
+wp t1-schema export backup.json
+wp t1-schema export > backup.json
+wp t1-schema export --globals-only
+wp t1-schema export --rules-only
+```
+
+### Coverage — Site-Wide Audit
+
+CLI version of the Site Map tab — shows schema coverage across all contexts.
+
+```bash
+wp t1-schema coverage
+wp t1-schema coverage --format=json
+```
+
+### Doctor — Diagnostics
+
+Checks database tables, duplicate types, plugin conflicts, health across all layers, orphaned schemas.
+
+```bash
+wp t1-schema doctor
+```
+
+### Utility Commands
+
+```bash
+wp t1-schema types       # list all Schema.org types
+wp t1-schema variables   # list all dynamic variables
+```
+
+### Custom Variables (Site Constants)
+
+```bash
+# List all custom variables
+wp t1-schema vars
+wp t1-schema vars --format=json
+
+# Set a custom variable (creates or updates)
+wp t1-schema set-var phone "+43 1 234 5678"
+wp t1-schema set-var address "Musterstraße 1, 1010 Wien"
+wp t1-schema set-var logo_url "https://teil1.de/logo.svg"
+
+# Delete a custom variable
+wp t1-schema delete-var phone
+wp t1-schema delete-var phone --yes
+```
+
+Once set, use `{{custom.phone}}` etc. in any schema property.
+
+### Bulk Import
+
+Import accepts two formats:
+
+1. **Export format** (round-trip with `wp t1-schema export`):
+   ```json
+   {"globals": [...], "rules": [...], "locals": [...]}
+   ```
+
+2. **Flat array** (local schemas only):
+   ```json
+   [{"post_id": 42, "type": "Article", "data": {"headline": "..."}}]
+   ```
+
+```bash
+# Round-trip: export from staging, import to production
+wp t1-schema export backup.json       # on staging
+wp t1-schema import backup.json       # on production
+
+# Preview before importing
+wp t1-schema import backup.json --dry-run
+```
+
+### Batch Operations
+
+```bash
+# Add Article schema to all blog posts
+for id in $(wp post list --post_type=post --format=ids); do
+  wp t1-schema set-local $id Article --json='{"headline":"{{post_title}}","datePublished":"{{post_date}}"}'
+done
+
+# Create rules for all CPTs
+for pt in $(wp post-type list --public --field=name); do
+  wp t1-schema add-rule WebPage --conditions="[{\"type\":\"singular\",\"value\":\"${pt}\"}]"
+done
+```
+
+---
+
+## Schema Types Reference
+
+t1 Schema ships with 22 built-in Schema.org types:
+
+| Type | Parent | Required Properties |
+|------|--------|---------------------|
+| **Organization** | Thing | name, url, logo |
+| **LocalBusiness** | Organization | name, url, address, telephone, image |
+| **WebSite** | CreativeWork | name, url |
+| **WebPage** | CreativeWork | name, url |
+| **Article** | CreativeWork | headline, image, datePublished, author |
+| **BlogPosting** | Article | headline, image, datePublished, author |
+| **Product** | Thing | name, image, offers |
+| **Offer** | Thing | price, priceCurrency |
+| **FAQPage** | WebPage | mainEntity |
+| **Question** | CreativeWork | name, acceptedAnswer |
+| **Answer** | CreativeWork | text |
+| **HowTo** | CreativeWork | name, step |
+| **HowToStep** | Thing | text |
+| **Event** | Thing | name, startDate, location |
+| **Person** | Thing | name |
+| **BreadcrumbList** | Thing | itemListElement |
+| **ListItem** | Thing | position, name, item |
+| **Review** | CreativeWork | author, reviewRating |
+| **AggregateRating** | Thing | ratingValue, reviewCount |
+| **VideoObject** | CreativeWork | name, description, thumbnailUrl, uploadDate |
+| **ImageObject** | CreativeWork | contentUrl |
+| **Service** | Thing | name |
+| **SoftwareApplication** | CreativeWork | name, offers |
+| **Course** | CreativeWork | name, description |
+| **Recipe** | HowTo | name, image, recipeIngredient, recipeInstructions |
+| **JobPosting** | Thing | title, description, datePosted, hiringOrganization, jobLocation |
+| **CreativeWork** | Thing | name |
+| **Thing** | — | name |
+
+---
+
+## Priority & Override Logic
+
+### Same-Type Override
+
+When multiple layers output the same `@type`, only the highest-priority version renders:
+
+```
+Post ID 42 has:
+  Global:  Article (headline: "Default")
+  Rule:    Article (headline: "{{post_title}}")    → overrides Global
+  Local:   Article (headline: "Custom Override")   → overrides Rule + Global
+
+Result: only "Custom Override" Article renders.
+```
+
+### Different-Type Coexistence
+
+Different `@type`s from different layers **all render together**:
+
+```
+Post ID 42 has:
+  Global:  Organization, WebSite
+  Rule:    Article (for all posts)
+  Local:   FAQPage
+
+Result: Organization + WebSite + Article + FAQPage all render in @graph.
+```
+
+### Local Override Toggle
+
+Each local schema has an **"Override global"** toggle:
+- **On** (default): replaces any global/rule schema of the same `@type`
+- **Off**: coexists alongside globals/rules, even if the same `@type`
+
+### Rule Priority
+
+Rules are evaluated by `priority` number (ascending). Lower = fires first:
+- Priority 1: fires before Priority 10
+- When two rules match the same context with the same `@type`, the lower-priority rule wins
+
+---
+
+## mu-Plugin Conflict Handling
+
+If the `teil1-content` mu-plugin has schema output functions, t1 Schema automatically suppresses them on activation:
+
+```php
+// From t1-schema.php
+if ( function_exists( 'teil1_schema_output' ) ) {
+    remove_action( 'wp_head', 'teil1_schema_output' );
+}
+```
+
+This prevents duplicate JSON-LD blocks in `<head>`. t1 Schema becomes the single source of truth for all structured data.
+
+**Action hook:** `t1schema_loaded` fires after suppression, so other plugins can detect that t1 Schema is active.
+
+---
+
+## Hooks & Filters
+
+### PHP Filters
+
+```php
+// Change the required capability (default: manage_options)
+add_filter( 't1schema_required_capability', function() {
+    return 'edit_posts'; // Allow editors
+});
+
+// Modify the final JSON-LD output
+add_filter( 't1schema_jsonld_output', function( $html, $schemas ) {
+    // $html = the full <script> tag
+    // $schemas = array of schema data
+    return $html;
+}, 10, 2 );
+
+// Custom variable resolution
+add_filter( 't1schema_resolve_variable', function( $value, $tag, $post_id ) {
+    if ( $tag === 'my_custom_var' ) {
+        return 'Custom Value';
+    }
+    return $value;
+}, 10, 3 );
+
+// Custom condition matching for rules
+add_filter( 't1schema_condition_match', function( $match, $condition, $context ) {
+    if ( $condition['type'] === 'my_custom_condition' ) {
+        return some_custom_check();
+    }
+    return $match;
+}, 10, 3 );
+```
+
+### Action Hooks
+
+```php
+// Fires after t1 Schema is loaded and mu-plugin conflicts are suppressed
+do_action( 't1schema_loaded' );
+```
+
+---
+
+## Troubleshooting
+
+### Schema not appearing on the page
+
+1. Check that the schema status is **active** (not draft)
+2. For rules: verify the condition matches the current page. Use `wp t1-schema rules` to list conditions.
+3. For local schemas: verify the post has the `_t1schema_local` meta. Use `wp t1-schema local <post_id>`.
+4. Check for a higher-priority override: a local schema of the same `@type` will suppress a rule.
+5. View source → search for `t1schema-jsonld`. If absent, the plugin may not be active.
+
+### Variables showing as `{{post_title}}` instead of actual values
+
+- Variables only resolve on the **frontend**. In the admin editor, you see the raw tags.
+- Use `wp t1-schema inspect <id> --resolved` to preview resolved values.
+
+### Health shows warnings for properties I don't need
+
+- Warnings are for **recommended** (not required) properties. They won't break anything.
+- Only errors (red) indicate actually missing required properties.
+
+### Database tables not created
+
+- Deactivate and reactivate the plugin, or visit any admin page (auto-migration runs on `plugins_loaded`).
+- Verify PHP 8.0+ and WordPress 6.0+.
+
+### Plugin folder is 70 MB
+
+- This is normal during development. The `admin/node_modules/` folder (69 MB) contains build tools.
+- The deployable zip is ~109 KB. When distributing, exclude `admin/node_modules/` and `admin/src/`.
+
+### WP-CLI commands not found
+
+- WP-CLI commands only register when `WP_CLI` is defined. Run commands via `wp t1-schema` (not `php`).
+- Verify the plugin is activated: `wp plugin list | grep t1-schema`.
+
+---
+
+## File Structure
+
+```
+t1-schema/
+├── t1-schema.php          # Plugin bootstrap, autoloader, hooks
+├── uninstall.php                # Cleanup on uninstall
+├── includes/
+│   ├── Activator.php            # DB table creation, default seeding
+│   ├── Deactivator.php          # Deactivation hooks
+│   ├── Admin.php                # Admin menu, asset enqueuing
+│   ├── RestApi.php              # All REST API endpoints
+│   ├── Frontend.php             # JSON-LD output in wp_head
+│   ├── SchemaRegistry.php       # Schema.org type definitions
+│   ├── SchemaValidator.php      # Health validation engine
+│   ├── VariableResolver.php     # {{variable}} tag resolution
+│   ├── ContextDetector.php      # WordPress context detection
+│   ├── ConditionMatcher.php     # Rule condition evaluation
+│   ├── MetaBox.php              # Post editor sidebar panel
+│   └── CLI.php                  # WP-CLI command class
+├── data/
+│   └── schema-types.json        # Schema.org type registry (22 types)
+├── assets/                      # Built production JS + CSS
+│   ├── app-*.js                 # React SPA bundle (~260 KB)
+│   └── main-*.css               # Stylesheet (~28 KB)
+└── admin/                       # Development source (not deployed)
+    ├── src/                     # React source code
+    ├── node_modules/            # NPM dependencies (dev only)
+    ├── package.json             # NPM config
+    └── vite.config.js           # Vite bundler config
+```
+
+---
+
+## REST API Endpoints
+
+All endpoints are under `/wp-json/t1-schema/v1/` and require `manage_options` capability.
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/globals` | GET | List all global schemas |
+| `/globals` | POST | Create a global schema |
+| `/globals/{id}` | GET | Get a single global schema |
+| `/globals/{id}` | PUT | Update a global schema |
+| `/globals/{id}` | DELETE | Delete a global schema |
+| `/rules` | GET | List all schema rules |
+| `/rules` | POST | Create a schema rule |
+| `/rules/{id}` | GET | Get a single rule |
+| `/rules/{id}` | PUT | Update a rule |
+| `/rules/{id}` | DELETE | Delete a rule |
+| `/local/{post_id}` | GET | Get local schemas for a post |
+| `/local/{post_id}` | PUT | Save local schemas for a post |
+| `/health` | GET | Global health report |
+| `/health/{post_id}` | GET | Per-post health report |
+| `/posts` | GET | Browse posts with schema status |
+| `/post-types` | GET | List all public post types |
+| `/site-structure` | GET | Full site context tree with coverage |
+| `/contexts` | GET | Available condition types for builder |
+| `/types` | GET | Schema.org type registry |
+| `/variables` | GET | Available dynamic variables |
+| `/custom-variables` | GET/PUT | Custom site-wide variables |
+| `/settings` | GET/PUT | Plugin settings |
+| `/parse-jsonld` | POST | Parse raw JSON-LD for import |

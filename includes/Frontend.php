@@ -1,0 +1,256 @@
+<?php
+
+namespace T1Schema;
+
+/**
+ * Frontend JSON-LD output handler.
+ *
+ * Assembles schemas from three layers:
+ *   1. Site-wide globals (no conditions)
+ *   2. Conditional rules (matched against current context)
+ *   3. Local overrides (per-post via post_meta)
+ *
+ * Local > Rule > Global priority per @type.
+ *
+ * @package T1Schema
+ * @since   1.0.0 (rewritten 1.2.0)
+ */
+class Frontend {
+
+    public function init(): void {
+        add_action( 'wp_head', [ $this, 'render_jsonld' ], 1 );
+    }
+
+    public function render_jsonld(): void {
+        try {
+            $schemas = $this->assemble_schemas();
+            if ( empty( $schemas ) ) {
+                return;
+            }
+
+            $schemas = $this->strip_internal_meta( $schemas );
+            $post_id = $this->get_current_post_id();
+            $schemas = VariableResolver::resolve( $schemas, $post_id );
+            $schemas = $this->remove_empty_values( $schemas );
+
+            if ( empty( $schemas ) ) {
+                return;
+            }
+
+            $output = $this->build_output( $schemas );
+            $output = apply_filters( 't1schema_jsonld_output', $output, $schemas );
+
+            if ( ! empty( $output ) ) {
+                echo $output . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            }
+        } catch ( \Throwable $e ) {
+            // Never crash the frontend. Log and continue.
+            error_log( '[t1 Schema] render_jsonld error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() );
+            if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+                echo '<!-- t1 Schema error: ' . esc_html( $e->getMessage() ) . ' -->' . "\n";
+            }
+        }
+    }
+
+    /**
+     * Assemble schemas from all three layers with priority resolution.
+     *
+     * Priority: Local Override > Schema Rule > Site-Wide Global.
+     * Within the same layer, later items override earlier ones per @type.
+     */
+    public function assemble_schemas(): array {
+        // Layer 1: Site-wide globals.
+        $globals = $this->get_global_schemas();
+
+        // Layer 2: Conditional rules.
+        $context = ContextDetector::detect();
+        $rules   = $this->get_matching_rules( $context );
+
+        // Layer 3: Local overrides (per-post).
+        $locals = $this->get_local_schemas();
+
+        // Build type index: track which types are overridden by higher layers.
+        // Uses normalize_type_key to handle both string and array @type values.
+        $local_types = [];
+        foreach ( $locals as $schema ) {
+            $type = $schema['@type'] ?? '';
+            if ( $type && ( $schema['_t1schema_meta']['override_global'] ?? true ) ) {
+                $local_types[ SchemaValidator::normalize_type_key( $type ) ] = true;
+            }
+        }
+
+        $rule_types = [];
+        foreach ( $rules as $schema ) {
+            $type = $schema['@type'] ?? '';
+            if ( $type ) {
+                $rule_types[ SchemaValidator::normalize_type_key( $type ) ] = true;
+            }
+        }
+
+        // Filter globals: remove types overridden by rules or locals.
+        $filtered_globals = array_filter( $globals, function ( array $s ) use ( $local_types, $rule_types ): bool {
+            $key = SchemaValidator::normalize_type_key( $s['@type'] ?? '' );
+            return ! isset( $local_types[ $key ] ) && ! isset( $rule_types[ $key ] );
+        } );
+
+        // Filter rules: remove types overridden by locals.
+        $filtered_rules = array_filter( $rules, function ( array $s ) use ( $local_types ): bool {
+            $key = SchemaValidator::normalize_type_key( $s['@type'] ?? '' );
+            return ! isset( $local_types[ $key ] );
+        } );
+
+        $merged_layers = array_merge(
+            array_values( $filtered_globals ),
+            array_values( $filtered_rules ),
+            $locals
+        );
+
+        $by_id = [];
+        $no_id = [];
+        foreach ( $merged_layers as $node ) {
+            $id = $node['@id'] ?? null;
+            if ( $id ) {
+                if ( isset( $by_id[ $id ] ) ) {
+                    // Merge: newer (e.g. local) properties overwrite older (rule/global)
+                    $by_id[ $id ] = array_merge( $by_id[ $id ], $node );
+                } else {
+                    $by_id[ $id ] = $node;
+                }
+            } else {
+                $no_id[] = $node;
+            }
+        }
+        
+        return array_merge( array_values( $by_id ), $no_id );
+    }
+
+    /**
+     * Get global schemas (rows without conditions).
+     */
+    private function get_global_schemas(): array {
+        global $wpdb;
+        $table = $wpdb->prefix . 't1schema_globals';
+
+        if ( ! $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) ) {
+            return [];
+        }
+
+        $rows = $wpdb->get_results(
+            "SELECT schema_type, schema_data FROM {$table} WHERE status = 'active'", ARRAY_A
+        ); // phpcs:ignore
+
+        $schemas = [];
+        foreach ( (array) $rows as $row ) {
+            $d = json_decode( $row['schema_data'], true );
+            if ( is_array( $d ) ) {
+                // Safety: ensure @type is always present from DB column.
+                if ( empty( $d['@type'] ) && ! empty( $row['schema_type'] ) ) {
+                    $d['@type'] = $row['schema_type'];
+                }
+                $schemas[] = $d;
+            }
+        }
+        return $schemas;
+    }
+
+    /**
+     * Get rules that match the current page context.
+     *
+     * Rules are loaded from the t1schema_rules table, sorted by priority,
+     * and filtered through ConditionMatcher.
+     */
+    private function get_matching_rules( array $context ): array {
+        global $wpdb;
+        $table = $wpdb->prefix . 't1schema_rules';
+
+        if ( ! $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) ) {
+            return [];
+        }
+
+        $rows = $wpdb->get_results(
+            "SELECT schema_data, conditions FROM {$table} WHERE status = 'active' ORDER BY priority ASC",
+            ARRAY_A
+        ); // phpcs:ignore
+
+        $matched = [];
+        foreach ( (array) $rows as $row ) {
+            $conditions = json_decode( $row['conditions'], true );
+            if ( ! is_array( $conditions ) ) {
+                continue;
+            }
+
+            if ( ConditionMatcher::matches( $conditions, $context ) ) {
+                $data = json_decode( $row['schema_data'], true );
+                if ( is_array( $data ) ) {
+                    $matched[] = $data;
+                }
+            }
+        }
+
+        return $matched;
+    }
+
+    /**
+     * Get local schemas from post_meta (only on singular pages).
+     */
+    private function get_local_schemas(): array {
+        $post_id = $this->get_current_post_id();
+        if ( ! $post_id ) {
+            return [];
+        }
+
+        $raw     = get_post_meta( $post_id, '_t1schema_local', true );
+        $decoded = is_string( $raw ) ? json_decode( $raw, true ) : $raw;
+
+        if ( ! is_array( $decoded ) ) {
+            return [];
+        }
+
+        return array_filter( $decoded, fn( array $s ) => ( $s['_t1schema_meta']['status'] ?? 'active' ) === 'active' );
+    }
+
+    private function get_current_post_id(): ?int {
+        return is_singular() ? ( get_the_ID() ?: null ) : null;
+    }
+
+    private function strip_internal_meta( array $schemas ): array {
+        return array_map( function ( array $s ) {
+            unset( $s['_t1schema_meta'] );
+            return $s;
+        }, $schemas );
+    }
+
+    private function remove_empty_values( array $data ): array {
+        $out = [];
+        foreach ( $data as $k => $v ) {
+            if ( is_array( $v ) ) {
+                $v = $this->remove_empty_values( $v );
+                if ( ! empty( $v ) ) {
+                    $out[ $k ] = $v;
+                }
+            } elseif ( $v !== '' && $v !== null ) {
+                $out[ $k ] = $v;
+            }
+        }
+        return $out;
+    }
+
+    private function build_output( array $schemas ): string {
+        if ( count( $schemas ) === 1 ) {
+            $json_data = reset( $schemas );
+        } else {
+            $items = array_map( function ( array $s ) {
+                unset( $s['@context'] );
+                return $s;
+            }, $schemas );
+
+            $json_data = [
+                '@context' => 'https://schema.org',
+                '@graph'   => array_values( $items ),
+            ];
+        }
+
+        $json = wp_json_encode( $json_data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+        return $json ? '<script type="application/ld+json" id="t1schema-jsonld">' . $json . '</script>' : '';
+    }
+}

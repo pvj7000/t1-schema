@@ -1,0 +1,121 @@
+<?php
+
+namespace T1Schema;
+
+/**
+ * Schema validator.
+ *
+ * Validates schema objects against Schema.org type rules
+ * and Google Rich Results requirements.
+ *
+ * @package T1Schema
+ * @since   1.0.0
+ */
+class SchemaValidator {
+
+    /**
+     * Validate a schema object.
+     *
+     * Supports multi-type @type (array), e.g. ["Organization", "ProfessionalService"].
+     * Validation runs against all recognized types in the array.
+     *
+     * @param array $schema Schema data to validate.
+     * @return array { valid: bool, errors: string[], warnings: string[], infos: string[] }
+     */
+    public static function validate( array $schema ): array {
+        $errors   = [];
+        $warnings = [];
+        $infos    = [];
+
+        // 1. Check @type exists.
+        if ( empty( $schema['@type'] ) ) {
+            $errors[] = 'Missing required @type property.';
+            return [ 'valid' => false, 'errors' => $errors, 'warnings' => $warnings, 'infos' => $infos ];
+        }
+
+        $raw_type = $schema['@type'];
+        $types    = is_array( $raw_type ) ? $raw_type : [ $raw_type ];
+        $registry = new SchemaRegistry();
+
+        // Collect types that exist in our curated registry vs valid list vs unknown.
+        $known_types   = array_filter( $types, fn( $t ) => $registry->has_type( $t ) );
+        $unknown_types = array_diff( $types, $known_types );
+
+        // Warn/error about unknown types.
+        foreach ( $unknown_types as $ut ) {
+            if ( $registry->is_valid_schema_org_type( $ut ) ) {
+                $infos[] = "Type '{$ut}' is a valid custom Schema.org type. Property validation is skipped.";
+            } else {
+                $errors[] = "Type '{$ut}' is not recognized as a valid Schema.org type.";
+            }
+        }
+
+        // If no known curated types, return early.
+        if ( empty( $known_types ) ) {
+            return [ 'valid' => empty( $errors ), 'errors' => $errors, 'warnings' => $warnings, 'infos' => $infos ];
+        }
+
+        // 2. Check required properties across ALL known types (union).
+        $checked_required    = [];
+        $checked_recommended = [];
+
+        foreach ( $known_types as $type ) {
+            $required = $registry->get_required_properties( $type );
+            foreach ( $required as $prop_name => $prop_def ) {
+                if ( isset( $checked_required[ $prop_name ] ) ) {
+                    continue; // Already reported.
+                }
+                $checked_required[ $prop_name ] = true;
+
+                if ( ! isset( $schema[ $prop_name ] ) || $schema[ $prop_name ] === '' ) {
+                    $type_label = is_array( $raw_type ) ? implode( ' + ', $raw_type ) : $raw_type;
+                    $errors[]   = "Missing required property: '{$prop_name}' for type '{$type_label}'.";
+                }
+            }
+
+            // 3. Check recommended properties.
+            $all_props = $registry->get_properties( $type );
+            foreach ( $all_props as $prop_name => $prop_def ) {
+                if ( isset( $checked_recommended[ $prop_name ] ) ) {
+                    continue;
+                }
+                $checked_recommended[ $prop_name ] = true;
+
+                if ( ( $prop_def['recommended'] ?? false ) && ( ! isset( $schema[ $prop_name ] ) || $schema[ $prop_name ] === '' ) ) {
+                    $type_label  = is_array( $raw_type ) ? implode( ' + ', $raw_type ) : $raw_type;
+                    $warnings[] = "Missing recommended property: '{$prop_name}' for type '{$type_label}'.";
+                }
+            }
+        }
+
+        // 4. Check @context exists (for root-level schemas).
+        if ( ! isset( $schema['@context'] ) ) {
+            $warnings[] = 'Missing @context. Will be added automatically at output.';
+        }
+
+        return [
+            'valid'    => empty( $errors ),
+            'errors'   => $errors,
+            'warnings' => $warnings,
+            'infos'    => $infos,
+        ];
+    }
+
+    /**
+     * Normalize an @type value to a string key for comparison/dedup.
+     *
+     * For arrays, returns a sorted, pipe-joined string: "Organization|ProfessionalService".
+     * For strings, returns the string as-is.
+     *
+     * @param mixed $type The @type value (string or array).
+     * @return string Normalized type key.
+     */
+    public static function normalize_type_key( $type ): string {
+        if ( is_array( $type ) ) {
+            $sorted = $type;
+            sort( $sorted );
+            return implode( '|', $sorted );
+        }
+        return (string) $type;
+    }
+}

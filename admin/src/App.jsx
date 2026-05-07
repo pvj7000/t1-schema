@@ -1,0 +1,181 @@
+import React, { useState } from 'react';
+import Dashboard from './components/Dashboard/BentoGrid';
+import SchemaEditor from './components/Editor/SchemaBuilder';
+import LocalSchemaEditor from './components/Editor/LocalSchemaEditor';
+import PageBrowser from './components/Pages/PageBrowser';
+import RulesList from './components/Rules/RulesList';
+import RuleBuilder from './components/Rules/RuleBuilder';
+import SiteStructure from './components/SiteMap/SiteStructure';
+import HelpPanel from './components/Help/HelpPanel';
+
+const TABS = {
+  DASHBOARD: 'dashboard',
+  RULES: 'rules',
+  STRUCTURE: 'structure',
+  PAGES: 'pages',
+  HELP: 'help',
+};
+
+const VIEWS = {
+  TAB: 'tab',
+  GLOBAL_EDITOR: 'global_editor',
+  LOCAL_EDITOR: 'local_editor',
+  RULE_EDITOR: 'rule_editor',
+};
+
+export default function App() {
+  const [activeTab, setActiveTab] = useState(TABS.DASHBOARD);
+  const [view, setView] = useState(VIEWS.TAB);
+  const [editingSchema, setEditingSchema] = useState(null);
+  const [editingPost, setEditingPost] = useState(null);
+  const [editingRule, setEditingRule] = useState(null);
+
+  const handleEditGlobal = (schema) => {
+    setEditingSchema(schema);
+    setView(VIEWS.GLOBAL_EDITOR);
+  };
+
+  const handleCreateGlobal = (type = null) => {
+    setEditingSchema({ isNew: true, preselectedType: type });
+    setView(VIEWS.GLOBAL_EDITOR);
+  };
+
+  const handleEditLocal = (post) => {
+    setEditingPost(post);
+    setView(VIEWS.LOCAL_EDITOR);
+  };
+
+  const handleEditRule = (rule) => {
+    setEditingRule(rule);
+    setView(VIEWS.RULE_EDITOR);
+  };
+
+  const handleCreateRule = (context = null) => {
+    // Pre-fill condition from site structure click.
+    let conditions = [{ type: '', value: '' }];
+    if (context) {
+      const parts = context.split(':');
+      conditions = [{ type: parts[0], value: parts.slice(1).join(':') || '' }];
+    }
+    setEditingRule({ isNew: true, conditions });
+    setView(VIEWS.RULE_EDITOR);
+  };
+
+  const handleBack = () => {
+    setEditingSchema(null);
+    setEditingPost(null);
+    setEditingRule(null);
+    setView(VIEWS.TAB);
+  };
+
+  const tabs = [
+    { id: TABS.DASHBOARD, label: 'Globals', icon: '📊' },
+    { id: TABS.RULES, label: 'Rules', icon: '🎯' },
+    { id: TABS.STRUCTURE, label: 'Site Map', icon: '🗺️' },
+    { id: TABS.PAGES, label: 'Pages', icon: '📄' },
+    { id: TABS.HELP, label: 'Help', icon: '📖' },
+  ];
+
+  return (
+    <div className="sp-min-h-screen sp-bg-surface-1 sp-p-6">
+      {/* Header */}
+      <header className="sp-mb-6 sp-flex sp-items-center sp-justify-between">
+        <div className="sp-flex sp-items-center sp-gap-3">
+          <div className="sp-flex sp-h-9 sp-w-9 sp-items-center sp-justify-center sp-rounded-lg sp-bg-brand-600 sp-text-white">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 7V4h16v3" /><path d="M9 20h6" /><path d="M12 4v16" />
+            </svg>
+          </div>
+          <div>
+            <h1 className="sp-text-lg sp-font-semibold sp-text-ink-0">t1 Schema</h1>
+            <p className="sp-text-2xs sp-font-medium sp-uppercase sp-tracking-wider sp-text-ink-3">
+              Structured Data Engine
+            </p>
+          </div>
+        </div>
+
+        <div className="sp-flex sp-items-center sp-gap-2">
+          {view !== VIEWS.TAB && (
+            <button
+              onClick={handleBack}
+              className="sp-inline-flex sp-items-center sp-gap-1.5 sp-rounded-lg sp-border sp-border-surface-3 sp-bg-white sp-px-3 sp-py-1.5 sp-text-sm sp-font-medium sp-text-ink-1 sp-shadow-bento sp-transition-all hover:sp-shadow-bento-hover"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 12H5" /><path d="m12 19-7-7 7-7" />
+              </svg>
+              Back
+            </button>
+          )}
+          {view === VIEWS.TAB && activeTab === TABS.DASHBOARD && (
+            <button
+              onClick={() => handleCreateGlobal()}
+              className="sp-inline-flex sp-items-center sp-gap-1.5 sp-rounded-lg sp-bg-brand-600 sp-px-3 sp-py-1.5 sp-text-sm sp-font-medium sp-text-white sp-shadow-bento sp-transition-all hover:sp-bg-brand-700 hover:sp-shadow-bento-hover"
+            >
+              + New Global
+            </button>
+          )}
+          {view === VIEWS.TAB && activeTab === TABS.RULES && (
+            <button
+              onClick={() => handleCreateRule()}
+              className="sp-inline-flex sp-items-center sp-gap-1.5 sp-rounded-lg sp-bg-brand-600 sp-px-3 sp-py-1.5 sp-text-sm sp-font-medium sp-text-white sp-shadow-bento sp-transition-all hover:sp-bg-brand-700 hover:sp-shadow-bento-hover"
+            >
+              + New Rule
+            </button>
+          )}
+        </div>
+      </header>
+
+      {/* Tab Navigation */}
+      {view === VIEWS.TAB && (
+        <nav className="sp-mb-6 sp-flex sp-gap-1 sp-rounded-lg sp-border sp-border-surface-3 sp-bg-white sp-p-1 sp-shadow-bento">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`sp-flex sp-items-center sp-gap-1.5 sp-rounded-md sp-px-4 sp-py-2 sp-text-sm sp-font-medium sp-transition-all ${
+                activeTab === tab.id
+                  ? 'sp-bg-brand-600 sp-text-white sp-shadow-sm'
+                  : 'sp-text-ink-2 hover:sp-bg-surface-1 hover:sp-text-ink-0'
+              }`}
+            >
+              <span>{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+      )}
+
+      {/* Main Content */}
+      <main className="sp-animate-fade-in">
+        {view === VIEWS.TAB && activeTab === TABS.DASHBOARD && (
+          <Dashboard
+            onEdit={handleEditGlobal}
+            onCreate={handleCreateGlobal}
+            onNavigateToRules={() => setActiveTab(TABS.RULES)}
+          />
+        )}
+        {view === VIEWS.TAB && activeTab === TABS.RULES && (
+          <RulesList onEdit={handleEditRule} onCreateNew={() => handleCreateRule()} />
+        )}
+        {view === VIEWS.TAB && activeTab === TABS.STRUCTURE && (
+          <SiteStructure onCreateRule={handleCreateRule} />
+        )}
+        {view === VIEWS.TAB && activeTab === TABS.PAGES && (
+          <PageBrowser onEditLocal={handleEditLocal} />
+        )}
+        {view === VIEWS.TAB && activeTab === TABS.HELP && (
+          <HelpPanel />
+        )}
+        {view === VIEWS.GLOBAL_EDITOR && (
+          <SchemaEditor schema={editingSchema} onBack={handleBack} />
+        )}
+        {view === VIEWS.LOCAL_EDITOR && (
+          <LocalSchemaEditor post={editingPost} onBack={handleBack} />
+        )}
+        {view === VIEWS.RULE_EDITOR && (
+          <RuleBuilder rule={editingRule} onBack={handleBack} />
+        )}
+      </main>
+    </div>
+  );
+}

@@ -1,0 +1,15 @@
+# Dependencies (dev only — not part of plugin distribution)
+admin/node_modules/
+
+# Vite build cache
+admin/.vite/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo

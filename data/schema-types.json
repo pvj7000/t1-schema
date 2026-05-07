@@ -1,0 +1,389 @@
+{
+  "Organization": {
+    "label": "Organization",
+    "parent": "Thing",
+    "description": "An organization such as a company, NGO, club, etc.",
+    "properties": {
+      "name": { "type": "Text", "required": true, "recommended": true, "description": "The name of the organization." },
+      "url": { "type": "URL", "required": true, "recommended": true, "description": "The URL of the organization's website." },
+      "logo": { "type": "URL", "required": true, "recommended": true, "description": "URL of the organization logo." },
+      "sameAs": { "type": "URL[]", "required": false, "recommended": true, "description": "Social media profile URLs." },
+      "description": { "type": "Text", "required": false, "recommended": true, "description": "A short description." },
+      "email": { "type": "Text", "required": false, "recommended": false, "description": "Contact email." },
+      "telephone": { "type": "Text", "required": false, "recommended": false, "description": "Contact phone number." },
+      "address": { "type": "PostalAddress", "required": false, "recommended": true, "description": "Physical address." },
+      "foundingDate": { "type": "Date", "required": false, "recommended": false, "description": "Date founded." }
+    }
+  },
+  "LocalBusiness": {
+    "label": "Local Business",
+    "parent": "Organization",
+    "description": "A physical business with a local presence.",
+    "properties": {
+      "name": { "type": "Text", "required": true, "recommended": true, "description": "Business name." },
+      "url": { "type": "URL", "required": true, "recommended": true, "description": "Business website URL." },
+      "address": { "type": "PostalAddress", "required": true, "recommended": true, "description": "Physical address." },
+      "telephone": { "type": "Text", "required": true, "recommended": true, "description": "Phone number." },
+      "image": { "type": "URL", "required": true, "recommended": true, "description": "Image of the business." },
+      "openingHours": { "type": "Text", "required": false, "recommended": true, "description": "Opening hours." },
+      "priceRange": { "type": "Text", "required": false, "recommended": true, "description": "Price range (e.g. $$$)." },
+      "geo": { "type": "GeoCoordinates", "required": false, "recommended": true, "description": "Geographic coordinates." }
+    }
+  },
+  "WebSite": {
+    "label": "WebSite",
+    "parent": "CreativeWork",
+    "description": "A website.",
+    "properties": {
+      "name": { "type": "Text", "required": true, "recommended": true, "description": "Website name." },
+      "url": { "type": "URL", "required": true, "recommended": true, "description": "Website URL." },
+      "potentialAction": { "type": "SearchAction", "required": false, "recommended": true, "description": "Search action for sitelinks search box." }
+    }
+  },
+  "WebPage": {
+    "label": "Web Page",
+    "parent": "CreativeWork",
+    "description": "A single web page.",
+    "properties": {
+      "name": { "type": "Text", "required": true, "recommended": true, "description": "Page title." },
+      "url": { "type": "URL", "required": true, "recommended": true, "description": "Page URL." },
+      "description": { "type": "Text", "required": false, "recommended": true, "description": "Page description." },
+      "datePublished": { "type": "Date", "required": false, "recommended": true, "description": "Publish date." },
+      "dateModified": { "type": "Date", "required": false, "recommended": true, "description": "Last modified date." }
+    }
+  },
+  "Article": {
+    "label": "Article",
+    "parent": "CreativeWork",
+    "description": "An article, such as a news or blog article.",
+    "properties": {
+      "headline": { "type": "Text", "required": true, "recommended": true, "description": "Article headline (max 110 chars)." },
+      "image": { "type": "URL", "required": true, "recommended": true, "description": "Article image URL." },
+      "datePublished": { "type": "Date", "required": true, "recommended": true, "description": "Publish date in ISO 8601." },
+      "dateModified": { "type": "Date", "required": false, "recommended": true, "description": "Last modified date." },
+      "author": { "type": "Person", "required": true, "recommended": true, "description": "Article author." },
+      "publisher": { "type": "Organization", "required": false, "recommended": true, "description": "Publishing organization." },
+      "description": { "type": "Text", "required": false, "recommended": true, "description": "Article summary." }
+    }
+  },
+  "BlogPosting": {
+    "label": "Blog Posting",
+    "parent": "Article",
+    "description": "A blog post.",
+    "properties": {
+      "headline": { "type": "Text", "required": true, "recommended": true, "description": "Post headline." },
+      "image": { "type": "URL", "required": true, "recommended": true, "description": "Post image." },
+      "datePublished": { "type": "Date", "required": true, "recommended": true, "description": "Publish date." },
+      "dateModified": { "type": "Date", "required": false, "recommended": true, "description": "Modified date." },
+      "author": { "type": "Person", "required": true, "recommended": true, "description": "Post author." },
+      "publisher": { "type": "Organization", "required": false, "recommended": true, "description": "Publisher." }
+    }
+  },
+  "Product": {
+    "label": "Product",
+    "parent": "Thing",
+    "description": "A product offered for sale.",
+    "properties": {
+      "name": { "type": "Text", "required": true, "recommended": true, "description": "Product name." },
+      "image": { "type": "URL", "required": true, "recommended": true, "description": "Product image." },
+      "description": { "type": "Text", "required": false, "recommended": true, "description": "Product description." },
+      "sku": { "type": "Text", "required": false, "recommended": true, "description": "Stock keeping unit." },
+      "brand": { "type": "Brand", "required": false, "recommended": true, "description": "Product brand." },
+      "offers": { "type": "Offer", "required": true, "recommended": true, "description": "Pricing and availability." },
+      "review": { "type": "Review", "required": false, "recommended": true, "description": "Product review." },
+      "aggregateRating": { "type": "AggregateRating", "required": false, "recommended": true, "description": "Average rating." }
+    }
+  },
+  "Offer": {
+    "label": "Offer",
+    "parent": "Thing",
+    "description": "An offer to sell a product or service.",
+    "properties": {
+      "price": { "type": "Number", "required": true, "recommended": true, "description": "Price value." },
+      "priceCurrency": { "type": "Text", "required": true, "recommended": true, "description": "Currency code (e.g. EUR)." },
+      "availability": { "type": "Text", "required": false, "recommended": true, "description": "Availability status URL." },
+      "url": { "type": "URL", "required": false, "recommended": true, "description": "URL to purchase." }
+    }
+  },
+  "FAQPage": {
+    "label": "FAQ Page",
+    "parent": "WebPage",
+    "description": "A page containing FAQ entries.",
+    "properties": {
+      "mainEntity": { "type": "Question[]", "required": true, "recommended": true, "description": "Array of Question items." }
+    }
+  },
+  "Question": {
+    "label": "Question",
+    "parent": "CreativeWork",
+    "description": "A question with an accepted answer.",
+    "properties": {
+      "name": { "type": "Text", "required": true, "recommended": true, "description": "The question text." },
+      "acceptedAnswer": { "type": "Answer", "required": true, "recommended": true, "description": "The accepted answer." }
+    }
+  },
+  "Answer": {
+    "label": "Answer",
+    "parent": "CreativeWork",
+    "description": "An answer to a question.",
+    "properties": {
+      "text": { "type": "Text", "required": true, "recommended": true, "description": "The answer text." }
+    }
+  },
+  "HowTo": {
+    "label": "How-To",
+    "parent": "CreativeWork",
+    "description": "Instructions for a task.",
+    "properties": {
+      "name": { "type": "Text", "required": true, "recommended": true, "description": "Title of the how-to." },
+      "step": { "type": "HowToStep[]", "required": true, "recommended": true, "description": "Steps to complete." },
+      "image": { "type": "URL", "required": false, "recommended": true, "description": "Image for the how-to." },
+      "totalTime": { "type": "Duration", "required": false, "recommended": true, "description": "Total time required." }
+    }
+  },
+  "HowToStep": {
+    "label": "How-To Step",
+    "parent": "Thing",
+    "description": "A single step in a how-to.",
+    "properties": {
+      "name": { "type": "Text", "required": false, "recommended": true, "description": "Step title." },
+      "text": { "type": "Text", "required": true, "recommended": true, "description": "Step instructions." },
+      "image": { "type": "URL", "required": false, "recommended": false, "description": "Step image." }
+    }
+  },
+  "Event": {
+    "label": "Event",
+    "parent": "Thing",
+    "description": "An event happening at a certain time and location.",
+    "properties": {
+      "name": { "type": "Text", "required": true, "recommended": true, "description": "Event name." },
+      "startDate": { "type": "Date", "required": true, "recommended": true, "description": "Start date/time." },
+      "endDate": { "type": "Date", "required": false, "recommended": true, "description": "End date/time." },
+      "location": { "type": "Place", "required": true, "recommended": true, "description": "Event location." },
+      "description": { "type": "Text", "required": false, "recommended": true, "description": "Event description." },
+      "image": { "type": "URL", "required": false, "recommended": true, "description": "Event image." },
+      "offers": { "type": "Offer", "required": false, "recommended": true, "description": "Ticket information." }
+    }
+  },
+  "Person": {
+    "label": "Person",
+    "parent": "Thing",
+    "description": "A person (alive, dead, undead, or fictional).",
+    "properties": {
+      "name": { "type": "Text", "required": true, "recommended": true, "description": "Full name." },
+      "url": { "type": "URL", "required": false, "recommended": true, "description": "Personal website." },
+      "image": { "type": "URL", "required": false, "recommended": true, "description": "Photo URL." },
+      "jobTitle": { "type": "Text", "required": false, "recommended": false, "description": "Job title." },
+      "sameAs": { "type": "URL[]", "required": false, "recommended": true, "description": "Social profile URLs." }
+    }
+  },
+  "BreadcrumbList": {
+    "label": "Breadcrumb List",
+    "parent": "Thing",
+    "description": "A breadcrumb trail for navigation.",
+    "properties": {
+      "itemListElement": { "type": "ListItem[]", "required": true, "recommended": true, "description": "Ordered breadcrumb items." }
+    }
+  },
+  "ListItem": {
+    "label": "List Item",
+    "parent": "Thing",
+    "description": "An item in a list.",
+    "properties": {
+      "position": { "type": "Number", "required": true, "recommended": true, "description": "Position in the list." },
+      "name": { "type": "Text", "required": true, "recommended": true, "description": "Item name." },
+      "item": { "type": "URL", "required": true, "recommended": true, "description": "Item URL." }
+    }
+  },
+  "Review": {
+    "label": "Review",
+    "parent": "CreativeWork",
+    "description": "A review of an item.",
+    "properties": {
+      "author": { "type": "Person", "required": true, "recommended": true, "description": "Review author." },
+      "reviewRating": { "type": "Rating", "required": true, "recommended": true, "description": "Rating given." },
+      "reviewBody": { "type": "Text", "required": false, "recommended": true, "description": "Review text." }
+    }
+  },
+  "AggregateRating": {
+    "label": "Aggregate Rating",
+    "parent": "Thing",
+    "description": "Average rating from multiple sources.",
+    "properties": {
+      "ratingValue": { "type": "Number", "required": true, "recommended": true, "description": "Average rating." },
+      "reviewCount": { "type": "Number", "required": true, "recommended": true, "description": "Number of reviews." },
+      "bestRating": { "type": "Number", "required": false, "recommended": true, "description": "Highest possible rating." },
+      "worstRating": { "type": "Number", "required": false, "recommended": false, "description": "Lowest possible rating." }
+    }
+  },
+  "VideoObject": {
+    "label": "Video",
+    "parent": "CreativeWork",
+    "description": "A video file or embed.",
+    "properties": {
+      "name": { "type": "Text", "required": true, "recommended": true, "description": "Video title." },
+      "description": { "type": "Text", "required": true, "recommended": true, "description": "Video description." },
+      "thumbnailUrl": { "type": "URL", "required": true, "recommended": true, "description": "Thumbnail image URL." },
+      "uploadDate": { "type": "Date", "required": true, "recommended": true, "description": "Upload date." },
+      "contentUrl": { "type": "URL", "required": false, "recommended": true, "description": "Direct video file URL." },
+      "embedUrl": { "type": "URL", "required": false, "recommended": true, "description": "Embed player URL." },
+      "duration": { "type": "Duration", "required": false, "recommended": true, "description": "Video duration (ISO 8601)." }
+    }
+  },
+  "ImageObject": {
+    "label": "Image",
+    "parent": "CreativeWork",
+    "description": "An image file.",
+    "properties": {
+      "contentUrl": { "type": "URL", "required": true, "recommended": true, "description": "Image file URL." },
+      "url": { "type": "URL", "required": false, "recommended": true, "description": "Page where image appears." },
+      "caption": { "type": "Text", "required": false, "recommended": true, "description": "Image caption." },
+      "width": { "type": "Number", "required": false, "recommended": false, "description": "Image width in pixels." },
+      "height": { "type": "Number", "required": false, "recommended": false, "description": "Image height in pixels." }
+    }
+  },
+  "Service": {
+    "label": "Service",
+    "parent": "Thing",
+    "description": "A service provided by an organization.",
+    "properties": {
+      "name": { "type": "Text", "required": true, "recommended": true, "description": "Service name." },
+      "description": { "type": "Text", "required": false, "recommended": true, "description": "Service description." },
+      "provider": { "type": "Organization", "required": false, "recommended": true, "description": "Service provider." },
+      "serviceType": { "type": "Text", "required": false, "recommended": true, "description": "Type of service." },
+      "areaServed": { "type": "Text", "required": false, "recommended": false, "description": "Geographic area served." }
+    }
+  },
+  "SoftwareApplication": {
+    "label": "Software Application",
+    "parent": "CreativeWork",
+    "description": "A software application.",
+    "properties": {
+      "name": { "type": "Text", "required": true, "recommended": true, "description": "Application name." },
+      "operatingSystem": { "type": "Text", "required": false, "recommended": true, "description": "Supported OS." },
+      "applicationCategory": { "type": "Text", "required": false, "recommended": true, "description": "App category." },
+      "offers": { "type": "Offer", "required": true, "recommended": true, "description": "Pricing information." },
+      "aggregateRating": { "type": "AggregateRating", "required": false, "recommended": true, "description": "Average rating." }
+    }
+  },
+  "Course": {
+    "label": "Course",
+    "parent": "CreativeWork",
+    "description": "An educational course.",
+    "properties": {
+      "name": { "type": "Text", "required": true, "recommended": true, "description": "Course name." },
+      "description": { "type": "Text", "required": true, "recommended": true, "description": "Course description." },
+      "provider": { "type": "Organization", "required": false, "recommended": true, "description": "Course provider." }
+    }
+  },
+  "Recipe": {
+    "label": "Recipe",
+    "parent": "HowTo",
+    "description": "A recipe for cooking.",
+    "properties": {
+      "name": { "type": "Text", "required": true, "recommended": true, "description": "Recipe name." },
+      "image": { "type": "URL", "required": true, "recommended": true, "description": "Recipe image." },
+      "recipeIngredient": { "type": "Text[]", "required": true, "recommended": true, "description": "List of ingredients." },
+      "recipeInstructions": { "type": "HowToStep[]", "required": true, "recommended": true, "description": "Cooking steps." },
+      "prepTime": { "type": "Duration", "required": false, "recommended": true, "description": "Preparation time." },
+      "cookTime": { "type": "Duration", "required": false, "recommended": true, "description": "Cooking time." },
+      "totalTime": { "type": "Duration", "required": false, "recommended": true, "description": "Total time." },
+      "recipeYield": { "type": "Text", "required": false, "recommended": true, "description": "Number of servings." }
+    }
+  },
+  "JobPosting": {
+    "label": "Job Posting",
+    "parent": "Thing",
+    "description": "A job posting.",
+    "properties": {
+      "title": { "type": "Text", "required": true, "recommended": true, "description": "Job title." },
+      "description": { "type": "Text", "required": true, "recommended": true, "description": "Job description." },
+      "datePosted": { "type": "Date", "required": true, "recommended": true, "description": "Date posted." },
+      "hiringOrganization": { "type": "Organization", "required": true, "recommended": true, "description": "Hiring company." },
+      "jobLocation": { "type": "Place", "required": true, "recommended": true, "description": "Job location." },
+      "validThrough": { "type": "Date", "required": false, "recommended": true, "description": "Application deadline." },
+      "baseSalary": { "type": "MonetaryAmount", "required": false, "recommended": true, "description": "Salary information." }
+    }
+  },
+  "CreativeWork": {
+    "label": "Creative Work",
+    "parent": "Thing",
+    "description": "The most generic kind of creative work.",
+    "properties": {
+      "name": { "type": "Text", "required": true, "recommended": true, "description": "Title of the work." },
+      "author": { "type": "Person", "required": false, "recommended": true, "description": "Creator." },
+      "datePublished": { "type": "Date", "required": false, "recommended": true, "description": "Publication date." },
+      "image": { "type": "URL", "required": false, "recommended": true, "description": "Primary image." }
+    }
+  },
+  "Thing": {
+    "label": "Thing",
+    "parent": null,
+    "description": "The most generic type. Every Schema.org type is a specialization of Thing.",
+    "properties": {
+      "name": { "type": "Text", "required": true, "recommended": true, "description": "Name of the item." },
+      "description": { "type": "Text", "required": false, "recommended": true, "description": "Description." },
+      "url": { "type": "URL", "required": false, "recommended": true, "description": "URL of the item." },
+      "image": { "type": "URL", "required": false, "recommended": false, "description": "Image URL." }
+    }
+  },
+  "TechArticle": {
+    "label": "Technical Article",
+    "parent": "Article",
+    "description": "A technical article — how-to, reference, or documentation.",
+    "properties": {
+      "headline": { "type": "Text", "required": true, "recommended": true, "description": "Article headline (max 110 chars)." },
+      "image": { "type": "URL", "required": true, "recommended": true, "description": "Article image URL." },
+      "datePublished": { "type": "Date", "required": true, "recommended": true, "description": "Publish date in ISO 8601." },
+      "dateModified": { "type": "Date", "required": false, "recommended": true, "description": "Last modified date." },
+      "author": { "type": "Person", "required": true, "recommended": true, "description": "Article author." },
+      "publisher": { "type": "Organization", "required": false, "recommended": true, "description": "Publishing organization." },
+      "description": { "type": "Text", "required": false, "recommended": true, "description": "Article summary." },
+      "proficiencyLevel": { "type": "Text", "required": false, "recommended": false, "description": "Proficiency level (Beginner, Expert)." },
+      "dependencies": { "type": "Text", "required": false, "recommended": false, "description": "Prerequisites or dependencies." }
+    }
+  },
+  "DefinedTerm": {
+    "label": "Defined Term",
+    "parent": "Thing",
+    "description": "A word, name, acronym, or phrase with a formal definition — ideal for glossary/lexicon entries.",
+    "properties": {
+      "name": { "type": "Text", "required": true, "recommended": true, "description": "The term being defined." },
+      "description": { "type": "Text", "required": true, "recommended": true, "description": "Definition or explanation of the term." },
+      "url": { "type": "URL", "required": false, "recommended": true, "description": "URL of the term's page." },
+      "inDefinedTermSet": { "type": "DefinedTermSet", "required": false, "recommended": true, "description": "The glossary/taxonomy this term belongs to." },
+      "sameAs": { "type": "URL[]", "required": false, "recommended": true, "description": "Canonical references (e.g. Wikipedia, Wikidata URLs)." },
+      "termCode": { "type": "Text", "required": false, "recommended": false, "description": "A code identifying this term within a term set." }
+    }
+  },
+  "DefinedTermSet": {
+    "label": "Defined Term Set",
+    "parent": "CreativeWork",
+    "description": "A set of defined terms — a glossary, taxonomy, or controlled vocabulary.",
+    "properties": {
+      "name": { "type": "Text", "required": true, "recommended": true, "description": "Name of the term set (e.g. 'Marketing Lexikon')." },
+      "description": { "type": "Text", "required": false, "recommended": true, "description": "Description of the glossary." },
+      "url": { "type": "URL", "required": false, "recommended": true, "description": "URL of the term set page." },
+      "hasDefinedTerm": { "type": "DefinedTerm[]", "required": false, "recommended": false, "description": "Terms in this set." }
+    }
+  },
+  "ProfessionalService": {
+    "label": "Professional Service",
+    "parent": "LocalBusiness",
+    "description": "A professional service business (agency, consultancy, law firm, etc.).",
+    "properties": {
+      "name": { "type": "Text", "required": true, "recommended": true, "description": "Business name." },
+      "url": { "type": "URL", "required": true, "recommended": true, "description": "Business website URL." },
+      "logo": { "type": "URL", "required": true, "recommended": true, "description": "Business logo." },
+      "image": { "type": "URL", "required": false, "recommended": true, "description": "Image of the business." },
+      "description": { "type": "Text", "required": false, "recommended": true, "description": "Business description." },
+      "telephone": { "type": "Text", "required": false, "recommended": true, "description": "Phone number." },
+      "email": { "type": "Text", "required": false, "recommended": false, "description": "Contact email." },
+      "address": { "type": "PostalAddress", "required": false, "recommended": true, "description": "Physical address." },
+      "sameAs": { "type": "URL[]", "required": false, "recommended": true, "description": "Social media profile URLs." },
+      "priceRange": { "type": "Text", "required": false, "recommended": true, "description": "Price range (e.g. $$$)." },
+      "areaServed": { "type": "Text", "required": false, "recommended": false, "description": "Geographic area served." },
+      "openingHours": { "type": "Text", "required": false, "recommended": false, "description": "Opening hours." }
+    }
+  }
+}

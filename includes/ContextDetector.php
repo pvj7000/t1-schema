@@ -1,0 +1,193 @@
+<?php
+
+namespace T1Schema;
+
+/**
+ * Detects the current WordPress page context.
+ *
+ * Returns a standardized context array that ConditionMatcher
+ * can evaluate rules against.
+ *
+ * @package T1Schema
+ * @since   1.2.0
+ */
+class ContextDetector {
+
+    /**
+     * Detect the current page context.
+     *
+     * @return array{type: string, subtype: string, post_type: string|null, taxonomy: string|null, term: string|null, author: string|null, post_id: int|null}
+     */
+    public static function detect(): array {
+        $ctx = [
+            'type'      => 'unknown',
+            'subtype'   => '',
+            'post_type' => null,
+            'taxonomy'  => null,
+            'term'      => null,
+            'author'    => null,
+            'post_id'   => null,
+        ];
+
+        if ( is_singular() ) {
+            $ctx['type']      = 'singular';
+            $ctx['post_type'] = get_post_type();
+            $ctx['post_id']   = get_the_ID() ?: null;
+            $ctx['subtype']   = $ctx['post_type'];
+            return $ctx;
+        }
+
+        if ( is_front_page() ) {
+            $ctx['type']    = 'front_page';
+            $ctx['subtype'] = 'front_page';
+            return $ctx;
+        }
+
+        if ( is_home() ) {
+            $ctx['type']    = 'archive';
+            $ctx['subtype'] = 'blog';
+            return $ctx;
+        }
+
+        if ( is_post_type_archive() ) {
+            $ctx['type']      = 'archive';
+            $ctx['post_type'] = get_query_var( 'post_type' );
+            if ( is_array( $ctx['post_type'] ) ) {
+                $ctx['post_type'] = $ctx['post_type'][0] ?? '';
+            }
+            $ctx['subtype'] = $ctx['post_type'];
+            return $ctx;
+        }
+
+        if ( is_category() || is_tag() || is_tax() ) {
+            $ctx['type'] = 'taxonomy';
+            $term        = get_queried_object();
+            if ( $term instanceof \WP_Term ) {
+                $ctx['taxonomy'] = $term->taxonomy;
+                $ctx['term']     = $term->slug;
+                $ctx['subtype']  = $term->taxonomy;
+            }
+            return $ctx;
+        }
+
+        if ( is_author() ) {
+            $ctx['type'] = 'author';
+            $author      = get_queried_object();
+            if ( $author instanceof \WP_User ) {
+                $ctx['author'] = $author->user_nicename;
+                $ctx['subtype'] = $author->user_nicename;
+            }
+            return $ctx;
+        }
+
+        if ( is_search() ) {
+            $ctx['type']    = 'search';
+            $ctx['subtype'] = 'search';
+            return $ctx;
+        }
+
+        if ( is_404() ) {
+            $ctx['type']    = '404';
+            $ctx['subtype'] = '404';
+            return $ctx;
+        }
+
+        if ( is_date() ) {
+            $ctx['type']    = 'date';
+            $ctx['subtype'] = 'date';
+            return $ctx;
+        }
+
+        if ( is_archive() ) {
+            $ctx['type']    = 'archive';
+            $ctx['subtype'] = 'archive';
+            return $ctx;
+        }
+
+        return $ctx;
+    }
+
+    /**
+     * Get all possible context conditions for the condition builder UI.
+     *
+     * @return array
+     */
+    public static function get_available_conditions(): array {
+        $conditions = [];
+
+        // Template-based.
+        $conditions[] = [ 'type' => 'front_page', 'label' => 'Front Page', 'group' => 'Template' ];
+        $conditions[] = [ 'type' => 'search',     'label' => 'Search Results', 'group' => 'Template' ];
+        $conditions[] = [ 'type' => '404',         'label' => '404 Page', 'group' => 'Template' ];
+        $conditions[] = [ 'type' => 'date',        'label' => 'Date Archives', 'group' => 'Template' ];
+        $conditions[] = [ 'type' => 'author',      'label' => 'All Author Archives', 'group' => 'Template' ];
+        $conditions[] = [ 'type' => 'blog',        'label' => 'Blog Index', 'group' => 'Template' ];
+
+        // Singular post types.
+        $post_types = get_post_types( [ 'public' => true ], 'objects' );
+        foreach ( $post_types as $slug => $pt ) {
+            if ( $slug === 'attachment' ) {
+                continue;
+            }
+            $conditions[] = [
+                'type'  => 'singular',
+                'value' => $slug,
+                'label' => "All {$pt->labels->name} (single)",
+                'group' => 'Single Content',
+            ];
+        }
+
+        // Post type archives.
+        $archive_types = get_post_types( [ 'public' => true, 'has_archive' => true ], 'objects' );
+        foreach ( $archive_types as $slug => $pt ) {
+            $conditions[] = [
+                'type'  => 'archive',
+                'value' => $slug,
+                'label' => "{$pt->labels->name} Archive",
+                'group' => 'Archives',
+            ];
+        }
+
+        // Taxonomies.
+        $taxonomies = get_taxonomies( [ 'public' => true ], 'objects' );
+        foreach ( $taxonomies as $slug => $tax ) {
+            $conditions[] = [
+                'type'  => 'taxonomy',
+                'value' => $slug,
+                'label' => "All {$tax->labels->name} Archives",
+                'group' => 'Taxonomies',
+            ];
+
+            // Individual terms.
+            $terms = get_terms( [
+                'taxonomy'   => $slug,
+                'hide_empty' => false,
+                'number'     => 50,
+            ] );
+
+            if ( ! is_wp_error( $terms ) ) {
+                foreach ( $terms as $term ) {
+                    $conditions[] = [
+                        'type'  => 'taxonomy_term',
+                        'value' => "{$slug}:{$term->slug}",
+                        'label' => "{$tax->labels->singular_name}: {$term->name}",
+                        'group' => 'Taxonomies',
+                    ];
+                }
+            }
+        }
+
+        // Authors.
+        $authors = get_users( [ 'who' => 'authors', 'number' => 50 ] );
+        foreach ( $authors as $author ) {
+            $conditions[] = [
+                'type'  => 'author_specific',
+                'value' => $author->user_nicename,
+                'label' => "Author: {$author->display_name}",
+                'group' => 'Authors',
+            ];
+        }
+
+        return $conditions;
+    }
+}
