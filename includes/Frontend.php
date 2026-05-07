@@ -28,9 +28,15 @@ class Frontend {
                 return;
             }
 
+            // Resolve variables BEFORE dedup so @id values like {{post_url}}#term
+            // can be matched against literal URLs from local schemas.
             $schemas = $this->strip_internal_meta( $schemas );
             $post_id = $this->get_current_post_id();
             $schemas = VariableResolver::resolve( $schemas, $post_id );
+
+            // Deduplicate nodes with the same @id (e.g. Rule + Local for same entity).
+            $schemas = $this->merge_by_id( $schemas );
+
             $schemas = $this->remove_empty_values( $schemas );
 
             if ( empty( $schemas ) ) {
@@ -99,19 +105,27 @@ class Frontend {
             return ! isset( $local_types[ $key ] );
         } );
 
-        $merged_layers = array_merge(
+        return array_merge(
             array_values( $filtered_globals ),
             array_values( $filtered_rules ),
             $locals
         );
+    }
 
+    /**
+     * Merge nodes that share the same @id.
+     *
+     * Later nodes (locals) overwrite properties from earlier nodes (rules/globals).
+     * Must be called AFTER variable resolution so {{post_url}} is already expanded.
+     */
+    private function merge_by_id( array $schemas ): array {
         $by_id = [];
         $no_id = [];
-        foreach ( $merged_layers as $node ) {
+
+        foreach ( $schemas as $node ) {
             $id = $node['@id'] ?? null;
             if ( $id ) {
                 if ( isset( $by_id[ $id ] ) ) {
-                    // Merge: newer (e.g. local) properties overwrite older (rule/global)
                     $by_id[ $id ] = array_merge( $by_id[ $id ], $node );
                 } else {
                     $by_id[ $id ] = $node;
@@ -120,7 +134,7 @@ class Frontend {
                 $no_id[] = $node;
             }
         }
-        
+
         return array_merge( array_values( $by_id ), $no_id );
     }
 

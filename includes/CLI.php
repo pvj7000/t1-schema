@@ -1346,17 +1346,31 @@ class CLI {
             $wp_query->is_home       = false;
         }
 
-        // --- Schema Assembly ---
+        // --- Schema Assembly (mirrors Frontend::render_jsonld pipeline) ---
         $frontend = new Frontend();
         $merged   = $frontend->assemble_schemas();
+
+        // Strip internal meta before output
+        $merged = array_map( function( $s ) { unset( $s['_t1schema_meta'] ); return $s; }, $merged );
 
         // Resolve variables unless --raw is passed
         $resolve = ! isset( $assoc_args['raw'] );
         if ( $resolve ) {
-            foreach ( $merged as $key => $data ) {
-                $merged[ $key ] = VariableResolver::resolve( $data, $post_id );
+            $merged = VariableResolver::resolve( $merged, $post_id );
+        }
+
+        // Deduplicate nodes with the same @id (Rule + Local merge)
+        $by_id = [];
+        $no_id = [];
+        foreach ( $merged as $node ) {
+            $id = $node['@id'] ?? null;
+            if ( $id ) {
+                $by_id[ $id ] = isset( $by_id[ $id ] ) ? array_merge( $by_id[ $id ], $node ) : $node;
+            } else {
+                $no_id[] = $node;
             }
         }
+        $merged = array_merge( array_values( $by_id ), $no_id );
 
         $graph = [ '@context' => 'https://schema.org', '@graph' => array_values( $merged ) ];
         \WP_CLI::log( wp_json_encode( $graph, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) );
