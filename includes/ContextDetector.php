@@ -188,6 +188,55 @@ class ContextDetector {
             ];
         }
 
+        // Parent-page hierarchy (children of a specific page).
+        $hierarchical_types = get_post_types( [ 'public' => true, 'hierarchical' => true ], 'names' );
+        if ( ! empty( $hierarchical_types ) ) {
+            $parent_pages = get_posts( [
+                'post_type'      => array_values( $hierarchical_types ),
+                'post_status'    => 'publish',
+                'posts_per_page' => 100,
+                'post_parent'    => 0, // top-level only
+                'orderby'        => 'title',
+                'order'          => 'ASC',
+            ] );
+
+            foreach ( $parent_pages as $page ) {
+                $conditions[] = [
+                    'type'  => 'child_of_page',
+                    'value' => (string) $page->ID,
+                    'label' => "Children of: {$page->post_title}",
+                    'group' => 'Page Hierarchy',
+                ];
+
+                // Also add second-level parents (e.g. /services/seo/ children).
+                $children = get_posts( [
+                    'post_type'      => $page->post_type,
+                    'post_status'    => 'publish',
+                    'post_parent'    => $page->ID,
+                    'posts_per_page' => 50,
+                    'orderby'        => 'title',
+                    'order'          => 'ASC',
+                ] );
+
+                foreach ( $children as $child ) {
+                    // Only add if this child itself has children.
+                    $grandchild_count = (int) get_children( [
+                        'post_parent' => $child->ID,
+                        'post_type'   => $child->post_type,
+                        'numberposts' => 1,
+                    ] );
+                    if ( $grandchild_count > 0 ) {
+                        $conditions[] = [
+                            'type'  => 'child_of_page',
+                            'value' => (string) $child->ID,
+                            'label' => "Children of: {$page->post_title} → {$child->post_title}",
+                            'group' => 'Page Hierarchy',
+                        ];
+                    }
+                }
+            }
+        }
+
         return $conditions;
     }
 }

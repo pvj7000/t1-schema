@@ -1,6 +1,6 @@
 # t1 Schema — Documentation
 
-**Version:** 1.4.7  
+**Version:** 1.4.8  
 **Author:** teil1 development  
 **Requires:** WordPress 6.0+, PHP 8.0+  
 **License:** GPL v2 or later

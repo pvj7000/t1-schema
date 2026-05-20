@@ -92,6 +92,14 @@ class ConditionMatcher {
             case 'author':
                 return $context['type'] === 'author';
 
+            // --- Parent-page hierarchy ---
+            case 'child_of_page':
+                if ( $context['type'] !== 'singular' || empty( $context['post_id'] ) ) {
+                    return false;
+                }
+                $ancestors = get_post_ancestors( (int) $context['post_id'] );
+                return in_array( (int) $value, $ancestors, true );
+
             case 'author_specific':
                 return $context['type'] === 'author'
                     && $context['author'] === $value;

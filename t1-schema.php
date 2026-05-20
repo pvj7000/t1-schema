@@ -3,7 +3,7 @@
  * Plugin Name:       t1 Schema
  * Plugin URI:        https://teil1.de/t1-schema
  * Description:       High-performance Schema.org JSON-LD markup with granular control. SaaS-grade visual editor for SEO professionals.
- * Version:           1.4.7
+ * Version:           1.4.8
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Author:            teil1 development
@@ -22,8 +22,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Plugin constants.
  */
-define( 'T1SCHEMA_VERSION', '1.4.7' );
-define( 'T1SCHEMA_DB_VERSION', '1.4.7' );
+define( 'T1SCHEMA_VERSION', '1.4.8' );
+define( 'T1SCHEMA_DB_VERSION', '1.4.8' );
 define( 'T1SCHEMA_FILE', __FILE__ );
 define( 'T1SCHEMA_PATH', plugin_dir_path( __FILE__ ) );
 define( 'T1SCHEMA_URL', plugin_dir_url( __FILE__ ) );
