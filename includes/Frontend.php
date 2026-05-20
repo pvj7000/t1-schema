@@ -105,11 +105,30 @@ class Frontend {
             return ! isset( $local_types[ $key ] );
         } );
 
-        return array_merge(
+        $schemas = array_merge(
             array_values( $filtered_globals ),
             array_values( $filtered_rules ),
             $locals
         );
+
+        // Auto-generate BreadcrumbList from page hierarchy (if not already present).
+        if ( apply_filters( 't1schema_auto_breadcrumbs', true ) ) {
+            $has_breadcrumbs = false;
+            foreach ( $schemas as $s ) {
+                if ( ( $s['@type'] ?? '' ) === 'BreadcrumbList' ) {
+                    $has_breadcrumbs = true;
+                    break;
+                }
+            }
+            if ( ! $has_breadcrumbs ) {
+                $breadcrumbs = $this->build_breadcrumbs();
+                if ( $breadcrumbs ) {
+                    $schemas[] = $breadcrumbs;
+                }
+            }
+        }
+
+        return $schemas;
     }
 
     /**
@@ -221,6 +240,68 @@ class Frontend {
         }
 
         return array_filter( $decoded, fn( array $s ) => ( $s['_t1schema_meta']['status'] ?? 'active' ) === 'active' );
+    }
+
+    /**
+     * Auto-generate BreadcrumbList schema from WordPress page hierarchy.
+     *
+     * Fires on all singular pages. Builds the breadcrumb trail from
+     * Home → ancestors → current page using get_post_ancestors().
+     *
+     * @since 1.4.9
+     * @return array|null BreadcrumbList schema or null if not applicable.
+     */
+    private function build_breadcrumbs(): ?array {
+        if ( ! is_singular() ) {
+            return null;
+        }
+
+        $post = get_queried_object();
+        if ( ! $post instanceof \WP_Post ) {
+            return null;
+        }
+
+        // Only generate breadcrumbs for hierarchical post types with actual ancestors.
+        if ( ! is_post_type_hierarchical( $post->post_type ) ) {
+            return null;
+        }
+
+        $ancestors = array_reverse( get_post_ancestors( $post->ID ) );
+        if ( empty( $ancestors ) ) {
+            return null; // Top-level page — no meaningful breadcrumb trail.
+        }
+        $items     = [];
+        $position  = 1;
+
+        // Home.
+        $items[] = [
+            '@type'    => 'ListItem',
+            'position' => $position++,
+            'name'     => 'Home',
+            'item'     => home_url( '/' ),
+        ];
+
+        // Ancestors.
+        foreach ( $ancestors as $ancestor_id ) {
+            $items[] = [
+                '@type'    => 'ListItem',
+                'position' => $position++,
+                'name'     => get_the_title( $ancestor_id ),
+                'item'     => get_permalink( $ancestor_id ),
+            ];
+        }
+
+        // Current page (last item omits 'item' per Google best practice).
+        $items[] = [
+            '@type'    => 'ListItem',
+            'position' => $position,
+            'name'     => get_the_title( $post ),
+        ];
+
+        return [
+            '@type'           => 'BreadcrumbList',
+            'itemListElement' => $items,
+        ];
     }
 
     private function get_current_post_id(): ?int {
