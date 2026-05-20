@@ -1,6 +1,6 @@
 # t1 Schema — Documentation
 
-**Version:** 1.4.8  
+**Version:** 1.4.9  
 **Author:** teil1 development  
 **Requires:** WordPress 6.0+, PHP 8.0+  
 **License:** GPL v2 or later
@@ -205,6 +205,13 @@ Each rule has:
 | All [Custom Tax] | Every custom taxonomy archive |
 | [Custom Tax]: [term] | A specific custom taxonomy term archive |
 
+#### Page Hierarchy
+| Condition | Targets |
+|-----------|---------|
+| Children of: [Page] | All descendant pages of a parent (children, grandchildren, etc.) |
+
+> Uses `get_post_ancestors()` — matches the entire subtree, not just direct children. Available for all hierarchical post types (Pages, etc.). The condition dropdown shows top-level pages and second-level pages that have children.
+
 #### Special Pages
 | Condition | Targets |
 |-----------|---------|
@@ -375,6 +382,8 @@ Use `{{variable_name}}` in any schema property value. Variables are resolved at 
 | `{{author_url}}` | Author archive URL | `https://example.com/author/max/` |
 | `{{author_description}}` | Author bio | `Digital marketing specialist…` |
 | `{{author_avatar_url}}` | Author avatar (96px) | `https://secure.gravatar.com/…` |
+
+> **Filterable:** `author_name`, `author_url`, and `author_avatar_url` can be overridden via the `t1schema_author_name`, `t1schema_author_url`, and `t1schema_author_avatar_url` filters. This allows themes or plugins with custom author systems to inject the correct author data without modifying the schema plugin. See [Hooks & Filters](#hooks--filters).
 
 ### Site Variables
 
@@ -728,6 +737,44 @@ Each local schema has an **"Override global"** toggle:
 - **On** (default): replaces any global/rule schema of the same `@type`
 - **Off**: coexists alongside globals/rules, even if the same `@type`
 
+### `@id`-Based Node Merging
+
+When multiple schemas in the graph share the same `@id` (after variable resolution), they are **merged into a single node** instead of being output as duplicates. Later nodes (locals) overwrite properties from earlier nodes (rules/globals).
+
+```
+Rule 3 produces:
+  { "@type": "DefinedTerm", "@id": "https://example.com/glossary/seo/#term",
+    "name": "SEO", "url": "https://example.com/glossary/seo/" }
+
+Local adds:
+  { "@type": "DefinedTerm", "@id": "https://example.com/glossary/seo/#term",
+    "sameAs": ["https://en.wikipedia.org/wiki/SEO"] }
+
+Merged output:
+  { "@type": "DefinedTerm", "@id": "https://example.com/glossary/seo/#term",
+    "name": "SEO", "url": "...", "sameAs": ["..."] }
+```
+
+This eliminates duplicate `@id` entries — which are semantically invalid in JSON-LD.
+
+### `@id` References in the UI
+
+When a schema property contains only an `@id` reference (e.g. `"provider": {"@id": "{{site_url}}#organization"}`), the editor displays a compact **Linked Entity** badge instead of an empty object form. This prevents false "Required" warnings on fields that are intentionally resolved via graph linking.
+
+### Auto-Generated BreadcrumbList
+
+On hierarchical post types (Pages) with at least one ancestor, the plugin automatically generates a `BreadcrumbList` schema. The trail follows `Home → Ancestors → Current Page`.
+
+**Conditions for auto-generation:**
+- The current page is a singular, hierarchical post type (e.g. `page`)
+- The page has at least one parent (top-level pages are excluded)
+- No `BreadcrumbList` already exists in the graph (from rules, globals, or locals)
+
+**Disable via filter:**
+```php
+add_filter( 't1schema_auto_breadcrumbs', '__return_false' );
+```
+
 ### Rule Priority
 
 Rules are evaluated by `priority` number (ascending). Lower = fires first:
@@ -785,6 +832,29 @@ add_filter( 't1schema_condition_match', function( $match, $condition, $context )
     }
     return $match;
 }, 10, 3 );
+
+// Override author data for custom author systems
+add_filter( 't1schema_author_name', function( $name, $post ) {
+    // Example: resolve from custom author profile
+    $custom_id = get_post_meta( $post->ID, '_custom_author', true );
+    if ( $custom_id ) {
+        return get_custom_author_name( $custom_id );
+    }
+    return $name;
+}, 10, 2 );
+
+add_filter( 't1schema_author_avatar_url', function( $url, $post ) {
+    // Same pattern for avatar
+    return $url;
+}, 10, 2 );
+
+add_filter( 't1schema_author_url', function( $url, $post ) {
+    // Same pattern for author URL
+    return $url;
+}, 10, 2 );
+
+// Disable auto-generated BreadcrumbList
+add_filter( 't1schema_auto_breadcrumbs', '__return_false' );
 ```
 
 ### Action Hooks
