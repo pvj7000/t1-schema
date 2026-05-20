@@ -166,11 +166,11 @@ class VariableResolver {
             'featured_image_url' => $post_id ? (string) get_the_post_thumbnail_url( $post_id, 'full' ) : '',
             'featured_image_alt' => self::get_featured_image_alt( $post_id ),
 
-            // Author variables.
-            'author_name'        => $post ? get_the_author_meta( 'display_name', $post->post_author ) : '',
+            // Author variables (custom author profile preferred over WP native).
+            'author_name'        => $post ? self::resolve_author_name( $post ) : '',
             'author_url'         => $post ? get_author_posts_url( $post->post_author ) : '',
             'author_description' => $post ? get_the_author_meta( 'description', $post->post_author ) : '',
-            'author_avatar_url'  => $post ? get_avatar_url( $post->post_author, [ 'size' => 96 ] ) : '',
+            'author_avatar_url'  => $post ? self::resolve_author_avatar( $post ) : '',
 
             // Site variables.
             'site_name'          => get_bloginfo( 'name' ),
@@ -240,6 +240,54 @@ class VariableResolver {
 
         $image = wp_get_attachment_image_url( $custom_logo_id, 'full' );
         return $image ? $image : '';
+    }
+
+    /**
+     * Resolve author name: custom author profile > WP native display_name.
+     *
+     * Supports teil1_blog_post CPT which stores custom author IDs in
+     * _teil1_content_custom_author meta, resolved against the
+     * teil1_author_profiles option.
+     *
+     * @since 1.4.9
+     * @param \WP_Post $post Post object.
+     * @return string  Author display name.
+     */
+    private static function resolve_author_name( \WP_Post $post ): string {
+        $custom_author_id = get_post_meta( $post->ID, '_teil1_content_custom_author', true );
+
+        if ( $custom_author_id ) {
+            $profiles = get_option( 'teil1_author_profiles', [] );
+            foreach ( (array) $profiles as $profile ) {
+                if ( ( $profile['id'] ?? '' ) === $custom_author_id && ! empty( $profile['name'] ) ) {
+                    return $profile['name'];
+                }
+            }
+        }
+
+        return get_the_author_meta( 'display_name', $post->post_author );
+    }
+
+    /**
+     * Resolve author avatar: custom author profile > Gravatar.
+     *
+     * @since 1.4.9
+     * @param \WP_Post $post Post object.
+     * @return string  Avatar URL.
+     */
+    private static function resolve_author_avatar( \WP_Post $post ): string {
+        $custom_author_id = get_post_meta( $post->ID, '_teil1_content_custom_author', true );
+
+        if ( $custom_author_id ) {
+            $profiles = get_option( 'teil1_author_profiles', [] );
+            foreach ( (array) $profiles as $profile ) {
+                if ( ( $profile['id'] ?? '' ) === $custom_author_id && ! empty( $profile['avatar'] ) ) {
+                    return $profile['avatar'];
+                }
+            }
+        }
+
+        return (string) get_avatar_url( $post->post_author, [ 'size' => 96 ] );
     }
 
     /**
