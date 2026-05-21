@@ -261,19 +261,10 @@ class Frontend {
             return null;
         }
 
-        // Only generate breadcrumbs for hierarchical post types with actual ancestors.
-        if ( ! is_post_type_hierarchical( $post->post_type ) ) {
-            return null;
-        }
+        $items    = [];
+        $position = 1;
 
-        $ancestors = array_reverse( get_post_ancestors( $post->ID ) );
-        if ( empty( $ancestors ) ) {
-            return null; // Top-level page — no meaningful breadcrumb trail.
-        }
-        $items     = [];
-        $position  = 1;
-
-        // Home.
+        // Home (always first).
         $items[] = [
             '@type'    => 'ListItem',
             'position' => $position++,
@@ -281,13 +272,37 @@ class Frontend {
             'item'     => home_url( '/' ),
         ];
 
-        // Ancestors.
-        foreach ( $ancestors as $ancestor_id ) {
+        if ( is_post_type_hierarchical( $post->post_type ) ) {
+            // Hierarchical: use page ancestors (e.g. Services → Marketing → SEO).
+            $ancestors = array_reverse( get_post_ancestors( $post->ID ) );
+            if ( empty( $ancestors ) ) {
+                return null; // Top-level page — no meaningful breadcrumb trail.
+            }
+
+            foreach ( $ancestors as $ancestor_id ) {
+                $items[] = [
+                    '@type'    => 'ListItem',
+                    'position' => $position++,
+                    'name'     => get_the_title( $ancestor_id ),
+                    'item'     => get_permalink( $ancestor_id ),
+                ];
+            }
+        } else {
+            // Non-hierarchical CPT: use archive page as middle step (e.g. Blog → Post).
+            $post_type_obj = get_post_type_object( $post->post_type );
+            $archive_url   = get_post_type_archive_link( $post->post_type );
+
+            if ( ! $archive_url ) {
+                return null; // No archive — no meaningful breadcrumb trail.
+            }
+
+            $archive_label = $post_type_obj->labels->name ?? $post_type_obj->label ?? '';
+
             $items[] = [
                 '@type'    => 'ListItem',
                 'position' => $position++,
-                'name'     => get_the_title( $ancestor_id ),
-                'item'     => get_permalink( $ancestor_id ),
+                'name'     => $archive_label,
+                'item'     => $archive_url,
             ];
         }
 

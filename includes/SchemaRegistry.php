@@ -41,7 +41,12 @@ class SchemaRegistry {
         if ( file_exists( $valid_file ) ) {
             $valid_data = json_decode( file_get_contents( $valid_file ), true ); // phpcs:ignore
             if ( is_array( $valid_data ) ) {
-                $this->valid_types = $valid_data;
+                // Strip namespace prefixes (e.g. "schema:CollectionPage" → "CollectionPage")
+                // so lookups by unprefixed type name work correctly.
+                $this->valid_types = array_map( function ( string $entry ): string {
+                    $parts = explode( ':', $entry, 2 );
+                    return count( $parts ) === 2 ? $parts[1] : $entry;
+                }, $valid_data );
             }
         }
     }

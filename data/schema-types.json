@@ -52,6 +52,16 @@
       "dateModified": { "type": "Date", "required": false, "recommended": true, "description": "Last modified date." }
     }
   },
+  "CollectionPage": {
+    "label": "Collection Page",
+    "parent": "WebPage",
+    "description": "A page that lists or aggregates items, such as an archive or index page.",
+    "properties": {
+      "name": { "type": "Text", "required": true, "recommended": true, "description": "Page title." },
+      "url": { "type": "URL", "required": true, "recommended": true, "description": "Page URL." },
+      "description": { "type": "Text", "required": false, "recommended": true, "description": "Page description." }
+    }
+  },
   "Article": {
     "label": "Article",
     "parent": "CreativeWork",
