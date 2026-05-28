@@ -118,7 +118,7 @@ class VariableResolver {
      */
     private static function resolve_string( string $text, ?int $post_id ): string {
         return preg_replace_callback(
-            '/\{\{([a-z_:.]+(?:\{[^}]*\})?)\}\}/',
+            '/\{\{([a-z0-9_:.]+(?:\{[^}]*\})?)\}\}/',
             function ( array $matches ) use ( $post_id ) {
                 return self::get_variable_value( $matches[1], $post_id );
             },
