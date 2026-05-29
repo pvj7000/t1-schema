@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useLocalSchemas, useUpdateLocal, useSchemaTypes, usePostHealth } from '../../hooks/useSchema';
+import { useLocalSchemas, useUpdateLocal, useSchemaTypes, usePostHealth, useCustomVariables } from '../../hooks/useSchema';
 import ObjectEditor from './ObjectEditor';
 import TypeSelector from './TypeSelector';
 import JsonImporter from './JsonImporter';
@@ -15,6 +15,7 @@ import HealthDetail from '../Dashboard/HealthDetail';
 export default function LocalSchemaEditor({ post, onBack }) {
   const { data: localData, isLoading } = useLocalSchemas(post?.id);
   const { data: typeDefs = {} } = useSchemaTypes();
+  const { data: customVars = {} } = useCustomVariables();
   const { data: healthData } = usePostHealth(post?.id);
   const updateMutation = useUpdateLocal();
 
@@ -343,7 +344,7 @@ export default function LocalSchemaEditor({ post, onBack }) {
           )}
 
           {/* JSON Preview */}
-          <JsonPreview schema={activeSchema} />
+          <JsonPreview schema={activeSchema} customVars={customVars} />
         </div>
       </div>
     </div>
@@ -353,9 +354,18 @@ export default function LocalSchemaEditor({ post, onBack }) {
 /**
  * JSON-LD preview panel with copy-to-clipboard button.
  */
-function JsonPreview({ schema }) {
+function JsonPreview({ schema, customVars = {} }) {
   const [copied, setCopied] = useState(false);
-  const json = JSON.stringify(schema || {}, null, 2);
+
+  const resolveCustomVars = (obj) => {
+    if (!customVars || typeof customVars !== 'object') return JSON.stringify(obj, null, 2);
+    const raw = JSON.stringify(obj, null, 2);
+    return raw.replace(/\{\{custom\.([a-z0-9_]+)\}\}/g, (match, key) => {
+      return key in customVars ? customVars[key] : match;
+    });
+  };
+
+  const json = resolveCustomVars(schema || {});
 
   const handleCopy = async () => {
     try {

@@ -1,9 +1,22 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useCreateRule, useUpdateRule, useContexts, useSchemaTypes } from '../../hooks/useSchema';
+import { useCreateRule, useUpdateRule, useContexts, useSchemaTypes, useCustomVariables } from '../../hooks/useSchema';
 import ObjectEditor from '../Editor/ObjectEditor';
 import VariablePicker from '../Editor/VariablePicker';
 import JsonImporter from '../Editor/JsonImporter';
 import HealthDetail from '../Dashboard/HealthDetail';
+
+/**
+ * Resolve {{custom.*}} variable tags in a schema object for preview display.
+ * Only replaces custom.* tags — post/site/archive variables remain as-is
+ * since they are context-dependent and can't be resolved without a specific post.
+ */
+function resolveCustomVariables(schema, customVars) {
+  if (!customVars || typeof customVars !== 'object') return JSON.stringify(schema, null, 2);
+  const json = JSON.stringify(schema, null, 2);
+  return json.replace(/\{\{custom\.([a-z0-9_]+)\}\}/g, (match, key) => {
+    return key in customVars ? customVars[key] : match;
+  });
+}
 
 /**
  * RuleBuilder — full-featured rule editor with structured property editing.
@@ -15,6 +28,7 @@ export default function RuleBuilder({ rule, onBack }) {
   const isNew = !rule || rule.isNew;
   const { data: contexts = [] } = useContexts();
   const { data: typeDefs = {} } = useSchemaTypes();
+  const { data: customVars = {} } = useCustomVariables();
   const createMutation = useCreateRule();
   const updateMutation = useUpdateRule();
 
@@ -388,7 +402,7 @@ export default function RuleBuilder({ rule, onBack }) {
               </h3>
             </div>
             <pre className="sp-max-h-64 sp-overflow-auto sp-p-4 sp-font-mono sp-text-xs sp-text-ink-2">
-              {JSON.stringify(fullSchema, null, 2)}
+              {resolveCustomVariables(fullSchema, customVars)}
             </pre>
           </div>
         </div>

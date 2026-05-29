@@ -392,8 +392,12 @@ class RestApi {
         // Validate globals.
         $globals = $wpdb->get_results( "SELECT * FROM {$g_table} WHERE status = 'active'", ARRAY_A ); // phpcs:ignore
         foreach ( (array) $globals as $row ) {
-            $data   = json_decode( $row['schema_data'], true );
-            $health = SchemaValidator::validate( $data );
+            $data = json_decode( $row['schema_data'], true );
+            // Safety: ensure @type is present from DB column (same as Frontend).
+            if ( is_array( $data ) && empty( $data['@type'] ) && ! empty( $row['schema_type'] ) ) {
+                $data['@type'] = $row['schema_type'];
+            }
+            $health = SchemaValidator::validate( $data, 'global' );
             $report['globals'][] = [
                 'id'     => (int) $row['id'],
                 'type'   => $row['schema_type'],
@@ -413,8 +417,12 @@ class RestApi {
         if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $r_table ) ) ) {
             $rules = $wpdb->get_results( "SELECT * FROM {$r_table} WHERE status = 'active'", ARRAY_A ); // phpcs:ignore
             foreach ( (array) $rules as $row ) {
-                $data   = json_decode( $row['schema_data'], true );
-                $health = SchemaValidator::validate( $data );
+                $data = json_decode( $row['schema_data'], true );
+                // Safety: ensure @type is present from DB column (same as Frontend).
+                if ( is_array( $data ) && empty( $data['@type'] ) && ! empty( $row['schema_type'] ) ) {
+                    $data['@type'] = $row['schema_type'];
+                }
+                $health = SchemaValidator::validate( $data, 'rule' );
                 $report['rules'][] = [
                     'id'     => (int) $row['id'],
                     'type'   => $row['schema_type'],

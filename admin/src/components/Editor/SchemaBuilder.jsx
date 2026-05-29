@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useSchemaTypes, useCreateGlobal, useUpdateGlobal } from '../../hooks/useSchema';
+import { useSchemaTypes, useCreateGlobal, useUpdateGlobal, useCustomVariables } from '../../hooks/useSchema';
 import ObjectEditor from './ObjectEditor';
 import TypeSelector from './TypeSelector';
 import JsonImporter from './JsonImporter';
@@ -8,12 +8,24 @@ import RichSnippet from '../Preview/RichSnippet';
 import HealthDetail from '../Dashboard/HealthDetail';
 
 /**
+ * Resolve {{custom.*}} variable tags in a schema object for preview display.
+ */
+function resolveCustomVariables(schema, customVars) {
+  if (!customVars || typeof customVars !== 'object') return JSON.stringify(schema, null, 2);
+  const json = JSON.stringify(schema, null, 2);
+  return json.replace(/\{\{custom\.([a-z0-9_]+)\}\}/g, (match, key) => {
+    return key in customVars ? customVars[key] : match;
+  });
+}
+
+/**
  * SchemaBuilder — Recursive visual schema editor.
  *
  * Converts JSON schema into interactive property cards.
  */
 export default function SchemaBuilder({ schema, onBack }) {
   const { data: typeDefs = {} } = useSchemaTypes();
+  const { data: customVars = {} } = useCustomVariables();
   const createMutation = useCreateGlobal();
   const updateMutation = useUpdateGlobal();
 
@@ -236,7 +248,7 @@ export default function SchemaBuilder({ schema, onBack }) {
             </h3>
           </div>
           <pre className="sp-max-h-64 sp-overflow-auto sp-p-4 sp-font-mono sp-text-xs sp-text-ink-2">
-            {JSON.stringify(schemaData, null, 2)}
+            {resolveCustomVariables(schemaData, customVars)}
           </pre>
         </div>
       </div>

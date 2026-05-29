@@ -19,10 +19,15 @@ class SchemaValidator {
      * Supports multi-type @type (array), e.g. ["Organization", "ProfessionalService"].
      * Validation runs against all recognized types in the array.
      *
-     * @param array $schema Schema data to validate.
+     * When $context is 'rule', recommended property warnings are downgraded to
+     * infos, since rules apply to multiple posts and recommended properties may
+     * be set per-post via local overrides.
+     *
+     * @param array  $schema  Schema data to validate.
+     * @param string $context Validation context: 'local', 'global', or 'rule'.
      * @return array { valid: bool, errors: string[], warnings: string[], infos: string[] }
      */
-    public static function validate( array $schema ): array {
+    public static function validate( array $schema, string $context = 'local' ): array {
         $errors   = [];
         $warnings = [];
         $infos    = [];
@@ -82,8 +87,13 @@ class SchemaValidator {
                 $checked_recommended[ $prop_name ] = true;
 
                 if ( ( $prop_def['recommended'] ?? false ) && ( ! isset( $schema[ $prop_name ] ) || $schema[ $prop_name ] === '' ) ) {
-                    $type_label  = is_array( $raw_type ) ? implode( ' + ', $raw_type ) : $raw_type;
-                    $warnings[] = "Missing recommended property: '{$prop_name}' for type '{$type_label}'.";
+                    $type_label = is_array( $raw_type ) ? implode( ' + ', $raw_type ) : $raw_type;
+                    if ( $context === 'rule' ) {
+                        // On rule level, recommended properties may be set per-post via local overrides.
+                        $infos[] = "Missing recommended property: '{$prop_name}' for type '{$type_label}'. May be set per-post.";
+                    } else {
+                        $warnings[] = "Missing recommended property: '{$prop_name}' for type '{$type_label}'.";
+                    }
                 }
             }
         }
