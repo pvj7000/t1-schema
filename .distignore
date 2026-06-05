@@ -29,3 +29,6 @@ DOCUMENTATION.md
 
 # Distribution config
 .distignore
+
+# WP.org SVN assets (uploaded separately, not in plugin zip)
+.wordpress-org/
