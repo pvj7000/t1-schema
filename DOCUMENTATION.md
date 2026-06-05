@@ -1,6 +1,6 @@
 # t1 Schema — Documentation
 
-**Version:** 1.4.9  
+**Version:** 1.5.0  
 **Author:** teil1 development  
 **Requires:** WordPress 6.0+, PHP 8.0+  
 **License:** GPL v2 or later
@@ -53,7 +53,7 @@ All schema data is output as a single `<script type="application/ld+json">` tag 
 On first activation, the plugin:
 - Creates the `t1schema_globals` and `t1schema_rules` database tables
 - Seeds a default **Organization** and **WebSite** schema using your site name and URL
-- Suppresses any existing `teil1-content` mu-plugin schema output to prevent duplicates
+- Suppresses any existing `teil1-content` mu-plugin schema output to prevent duplicates (filterable via `t1schema_suppress_conflicts`)
 
 ---
 
@@ -193,7 +193,7 @@ Each rule has:
 | Condition | Targets |
 |-----------|---------|
 | Blog Index | The blog listing page |
-| [CPT] Archive | Custom post type archive page (e.g. `/referenzen/`) |
+| [CPT] Archive | Custom post type archive page (e.g. `/portfolio/`) |
 
 #### Taxonomies
 | Condition | Targets |
@@ -239,7 +239,7 @@ Each rule has:
 - Properties: `headline: {{post_title}}`, `datePublished: {{post_date}}`, `image: {{featured_image_url}}`
 
 **CollectionPage for CPT archive:**
-- Condition: `Referenzen Archive`
+- Condition: `Portfolio Archive`
 - Type: `CollectionPage`
 - Properties: `name: {{archive_title}}`, `url: {{archive_url}}`
 
@@ -265,10 +265,10 @@ The **Site Map** tab shows a complete, hierarchical view of every URL context on
 📝 Blog Index                → [no rules]
 📄 Pages (12 items)          → WebPage ✓ Covered
 📰 Posts (34 items)          → Article ✓ Covered
-📁 Referenzen (8 items)      → CreativeWork ✓ Covered
-   📋 Referenzen Archive     → CollectionPage ✓ Covered
-📁 Lexikon (15 items)        → [no rules]
-   📋 Lexikon Archive        → [no rules]
+📁 Portfolio (8 items)       → CreativeWork ✓ Covered
+   📋 Portfolio Archive      → CollectionPage ✓ Covered
+📁 Glossary (15 items)       → [no rules]
+   📋 Glossary Archive       → [no rules]
 🏷️ Categories
    ├── Marketing (5 items)   → [no rules]
    └── SEO (3 items)         → [no rules]
@@ -308,7 +308,7 @@ For individual posts and pages, you can add **local schemas** that override any 
 | With schema | Only pages that have local schemas |
 | Without schema | Only pages without local schemas |
 
-The post type dropdown dynamically lists **all registered public post types** with counts — including any custom post types from plugins like `teil1_referenz`, `teil1_lexikon`, etc.
+The post type dropdown dynamically lists **all registered public post types** with counts — including any custom post types registered by your theme or other plugins.
 
 ### Storage Format
 
@@ -389,11 +389,11 @@ Use `{{variable_name}}` in any schema property value. Variables are resolved at 
 
 | Variable | Description | Example Output |
 |----------|-------------|----------------|
-| `{{site_name}}` | Site title (Settings → General) | `teil1` |
-| `{{site_url}}` | Site home URL | `https://teil1.de/` |
-| `{{site_description}}` | Site tagline | `Code Gebaut` |
-| `{{site_logo}}` | Custom logo URL | `https://teil1.de/…/logo.svg` |
-| `{{site_language}}` | Site language | `de-DE` |
+| `{{site_name}}` | Site title (Settings → General) | `My Website` |
+| `{{site_url}}` | Site home URL | `https://example.com/` |
+| `{{site_description}}` | Site tagline | `Your site tagline` |
+| `{{site_logo}}` | Custom logo URL | `https://example.com/…/logo.svg` |
+| `{{site_language}}` | Site language | `en-US` |
 
 ### Taxonomy Variables
 
@@ -413,8 +413,8 @@ These resolve on non-singular pages (archives, taxonomy pages, search):
 | `{{term_name}}` | Current taxonomy term name | `Marketing` |
 | `{{term_description}}` | Term description | `All marketing articles` |
 | `{{term_url}}` | Term archive URL | `https://example.com/category/marketing/` |
-| `{{archive_title}}` | Archive page title | `Referenzen` |
-| `{{archive_url}}` | Current archive URL | `https://example.com/referenzen/` |
+| `{{archive_title}}` | Archive page title | `Portfolio` |
+| `{{archive_url}}` | Current archive URL | `https://example.com/portfolio/` |
 | `{{search_query}}` | Current search query | `schema markup` |
 
 ### Custom Meta Variables
@@ -425,7 +425,7 @@ Access any `post_meta` value:
 |----------|-------------|
 | `{{meta:custom_key}}` | Value of `get_post_meta($post_id, 'custom_key', true)` |
 | `{{meta:_price}}` | Example: WooCommerce price field |
-| `{{meta:teil1_client}}` | Example: custom client field |
+| `{{meta:project_client}}` | Example: custom client field |
 
 ### Custom Variables (Site Constants)
 
@@ -462,7 +462,9 @@ t1 Schema validates every schema against its type definition from the registry.
 |-------|---------|-------------|
 | **Error** | A required property is missing or empty | 🔴 Red |
 | **Warning** | A recommended property is missing | 🟡 Yellow |
+| **Info** | A recommended property is missing on a rule-level schema (may be set per-post) | 🔵 Blue |
 | **Valid** | All required and recommended properties are set | 🟢 Green |
+| **Valid (Custom)** | Valid, with info-level notes for custom types | 🔵 Blue |
 
 ### Where Validation Shows
 
@@ -492,7 +494,7 @@ wp t1-schema globals
 wp t1-schema globals --format=json
 
 # Create a new global schema
-wp t1-schema create Organization --name="teil1" --url="https://teil1.de"
+wp t1-schema create Organization --name="My Company" --url="https://example.com"
 wp t1-schema create WebSite --name="My Site" --url="https://example.com"
 wp t1-schema create Product --name="My Product" --status=draft
 
@@ -548,8 +550,8 @@ wp t1-schema add-rule Article \
 
 # Create a rule — CollectionPage for a CPT archive
 wp t1-schema add-rule CollectionPage \
-  --conditions='[{"type":"archive","value":"teil1_referenz"}]' \
-  --name="Referenz Archive"
+  --conditions='[{"type":"archive","value":"portfolio"}]' \
+  --name="Portfolio Archive"
 
 # Delete a rule
 wp t1-schema delete-rule 3
@@ -618,7 +620,7 @@ wp t1-schema vars --format=json
 # Set a custom variable (creates or updates)
 wp t1-schema set-var phone "+43 1 234 5678"
 wp t1-schema set-var address "Musterstraße 1, 1010 Wien"
-wp t1-schema set-var logo_url "https://teil1.de/logo.svg"
+wp t1-schema set-var logo_url "https://example.com/logo.svg"
 
 # Delete a custom variable
 wp t1-schema delete-var phone
@@ -785,18 +787,24 @@ Rules are evaluated by `priority` number (ascending). Lower = fires first:
 
 ## mu-Plugin Conflict Handling
 
-If the `teil1-content` mu-plugin has schema output functions, t1 Schema automatically suppresses them on activation:
+t1 Schema automatically detects and suppresses known conflicting schema output functions to prevent duplicate JSON-LD in `<head>`:
 
 ```php
-// From t1-schema.php
-if ( function_exists( 'teil1_schema_output' ) ) {
-    remove_action( 'wp_head', 'teil1_schema_output' );
+// From t1-schema.php — filterable since v1.5.0
+if ( apply_filters( 't1schema_suppress_conflicts', true ) ) {
+    if ( function_exists( 'teil1_schema_output' ) ) {
+        remove_action( 'wp_head', 'teil1_schema_output' );
+    }
 }
 ```
 
-This prevents duplicate JSON-LD blocks in `<head>`. t1 Schema becomes the single source of truth for all structured data.
+This behavior is **filterable** — return `false` from the `t1schema_suppress_conflicts` filter to disable automatic suppression:
 
-**Action hook:** `t1schema_loaded` fires after suppression, so other plugins can detect that t1 Schema is active.
+```php
+add_filter( 't1schema_suppress_conflicts', '__return_false' );
+```
+
+**Action hook:** `t1schema_loaded` fires after initialization, so other plugins can detect that t1 Schema is active.
 
 ---
 
@@ -855,6 +863,9 @@ add_filter( 't1schema_author_url', function( $url, $post ) {
 
 // Disable auto-generated BreadcrumbList
 add_filter( 't1schema_auto_breadcrumbs', '__return_false' );
+
+// Disable automatic suppression of conflicting schema plugins
+add_filter( 't1schema_suppress_conflicts', '__return_false' );
 ```
 
 ### Action Hooks
@@ -894,7 +905,7 @@ do_action( 't1schema_loaded' );
 ### Plugin folder is 70 MB
 
 - This is normal during development. The `admin/node_modules/` folder (69 MB) contains build tools.
-- The deployable zip is ~109 KB. When distributing, exclude `admin/node_modules/` and `admin/src/`.
+- The deployable zip is ~151 KB. A `.distignore` file defines what to exclude when building the distribution zip.
 
 ### WP-CLI commands not found
 
@@ -907,12 +918,16 @@ do_action( 't1schema_loaded' );
 
 ```
 t1-schema/
-├── t1-schema.php          # Plugin bootstrap, autoloader, hooks
+├── t1-schema.php                # Plugin bootstrap, autoloader, hooks
 ├── uninstall.php                # Cleanup on uninstall
+├── readme.txt                   # WP.org standard readme
+├── license.txt                  # GPL v2 license text
+├── .distignore                  # Files excluded from distribution zip
 ├── includes/
 │   ├── Activator.php            # DB table creation, default seeding
 │   ├── Deactivator.php          # Deactivation hooks
 │   ├── Admin.php                # Admin menu, asset enqueuing
+│   ├── AdminBar.php             # Frontend admin bar schema indicator
 │   ├── RestApi.php              # All REST API endpoints
 │   ├── Frontend.php             # JSON-LD output in wp_head
 │   ├── SchemaRegistry.php       # Schema.org type definitions
@@ -923,10 +938,16 @@ t1-schema/
 │   ├── MetaBox.php              # Post editor sidebar panel
 │   └── CLI.php                  # WP-CLI command class
 ├── data/
-│   └── schema-types.json        # Schema.org type registry (22 types)
-├── assets/                      # Built production JS + CSS
-│   ├── app-*.js                 # React SPA bundle (~260 KB)
-│   └── main-*.css               # Stylesheet (~28 KB)
+│   ├── schema-types.json        # Schema.org type registry (22 types)
+│   └── valid-types.json         # Full Schema.org type list for validation
+├── languages/
+│   └── t1-schema.pot            # Translation template
+├── assets/                      # Built production JS + CSS (Vite output)
+│   ├── app-*.js                 # React SPA bundle (~287 KB)
+│   └── main-*.css               # Stylesheet (~33 KB)
+├── .wordpress-org/              # WP.org directory assets (not in plugin zip)
+│   ├── banner-1544x500.png      # Plugin banner
+│   └── icon-256x256.png         # Plugin icon
 └── admin/                       # Development source (not deployed)
     ├── src/                     # React source code
     ├── node_modules/            # NPM dependencies (dev only)
@@ -965,3 +986,5 @@ All endpoints are under `/wp-json/t1-schema/v1/` and require `manage_options` ca
 | `/custom-variables` | GET/PUT | Custom site-wide variables |
 | `/settings` | GET/PUT | Plugin settings |
 | `/parse-jsonld` | POST | Parse raw JSON-LD for import |
+| `/score` | GET | Schema quality score (0–100) |
+| `/recommended-rules` | GET | Suggested rule templates |
