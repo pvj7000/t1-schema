@@ -34,7 +34,7 @@ class SchemaValidator {
 
         // 1. Check @type exists.
         if ( empty( $schema['@type'] ) ) {
-            $errors[] = 'Missing required @type property.';
+            $errors[] = __( 'Missing required @type property.', 't1-schema' );
             return [ 'valid' => false, 'errors' => $errors, 'warnings' => $warnings, 'infos' => $infos ];
         }
 
@@ -49,9 +49,17 @@ class SchemaValidator {
         // Warn/error about unknown types.
         foreach ( $unknown_types as $ut ) {
             if ( $registry->is_valid_schema_org_type( $ut ) ) {
-                $infos[] = "Type '{$ut}' is a valid custom Schema.org type. Property validation is skipped.";
+                $infos[] = sprintf(
+                    /* translators: %s: Schema.org type name. */
+                    __( "Type '%s' is a valid custom Schema.org type. Property validation is skipped.", 't1-schema' ),
+                    $ut
+                );
             } else {
-                $errors[] = "Type '{$ut}' is not recognized as a valid Schema.org type.";
+                $errors[] = sprintf(
+                    /* translators: %s: Schema.org type name. */
+                    __( "Type '%s' is not recognized as a valid Schema.org type.", 't1-schema' ),
+                    $ut
+                );
             }
         }
 
@@ -74,7 +82,12 @@ class SchemaValidator {
 
                 if ( ! isset( $schema[ $prop_name ] ) || $schema[ $prop_name ] === '' ) {
                     $type_label = is_array( $raw_type ) ? implode( ' + ', $raw_type ) : $raw_type;
-                    $errors[]   = "Missing required property: '{$prop_name}' for type '{$type_label}'.";
+                    $errors[]   = sprintf(
+                        /* translators: 1: property name, 2: Schema.org type. */
+                        __( "Missing required property: '%1\$s' for type '%2\$s'.", 't1-schema' ),
+                        $prop_name,
+                        $type_label
+                    );
                 }
             }
 
@@ -90,9 +103,19 @@ class SchemaValidator {
                     $type_label = is_array( $raw_type ) ? implode( ' + ', $raw_type ) : $raw_type;
                     if ( $context === 'rule' ) {
                         // On rule level, recommended properties may be set per-post via local overrides.
-                        $infos[] = "Missing recommended property: '{$prop_name}' for type '{$type_label}'. May be set per-post.";
+                        $infos[] = sprintf(
+                            /* translators: 1: property name, 2: Schema.org type. */
+                            __( "Missing recommended property: '%1\$s' for type '%2\$s'. May be set per-post.", 't1-schema' ),
+                            $prop_name,
+                            $type_label
+                        );
                     } else {
-                        $warnings[] = "Missing recommended property: '{$prop_name}' for type '{$type_label}'.";
+                        $warnings[] = sprintf(
+                            /* translators: 1: property name, 2: Schema.org type. */
+                            __( "Missing recommended property: '%1\$s' for type '%2\$s'.", 't1-schema' ),
+                            $prop_name,
+                            $type_label
+                        );
                     }
                 }
             }
@@ -100,7 +123,7 @@ class SchemaValidator {
 
         // 4. Check @context exists (for root-level schemas).
         if ( ! isset( $schema['@context'] ) ) {
-            $warnings[] = 'Missing @context. Will be added automatically at output.';
+            $warnings[] = __( 'Missing @context. Will be added automatically at output.', 't1-schema' );
         }
 
         return [

@@ -69,7 +69,11 @@ class AdminBar {
             'title' => "<span style='color:{$color};font-weight:600'>{$label}</span>",
             'href'  => admin_url( 'admin.php?page=t1-schema' ),
             'meta'  => [
-                'title' => "t1 Schema: {$count} active schema(s) on this page",
+                'title' => sprintf(
+                    /* translators: %d: number of active schemas. */
+                    __( 't1 Schema: %d active schema(s) on this page', 't1-schema' ),
+                    $count
+                ),
             ],
         ] );
 
@@ -77,7 +81,7 @@ class AdminBar {
             $wp_admin_bar->add_node( [
                 'parent' => 't1-schema',
                 'id'     => 't1schema-empty',
-                'title'  => '<span style="color:#9ca3af;font-size:12px">No schemas active on this page</span>',
+                'title'  => '<span style="color:#9ca3af;font-size:12px">' . esc_html__( 'No schemas active on this page', 't1-schema' ) . '</span>',
                 'href'   => admin_url( 'admin.php?page=t1-schema' ),
             ] );
             return;
@@ -89,8 +93,12 @@ class AdminBar {
                 'parent' => 't1-schema',
                 'id'     => "t1schema-schema-{$i}",
                 'title'  => "<span style='display:inline-block;width:8px;height:8px;border-radius:50%;background:{$badge};margin-right:6px'></span>"
-                          . "<strong>{$schema['type']}</strong>"
-                          . "<span style='color:#9ca3af;margin-left:6px;font-size:11px'>{$schema['props']} props</span>",
+                          . '<strong>' . esc_html( $schema['type'] ) . '</strong>'
+                          . '<span style="color:#9ca3af;margin-left:6px;font-size:11px">' . sprintf(
+                              /* translators: %d: number of properties. */
+                              esc_html__( '%d props', 't1-schema' ),
+                              $schema['props']
+                          ) . '</span>',
                 'href'   => admin_url( 'admin.php?page=t1-schema' ),
             ] );
         }
@@ -98,7 +106,7 @@ class AdminBar {
         $wp_admin_bar->add_node( [
             'parent' => 't1-schema',
             'id'     => 't1schema-dashboard',
-            'title'  => '<span style="color:#6366f1;font-size:12px">→ Open Dashboard</span>',
+            'title'  => '<span style="color:#6366f1;font-size:12px">' . esc_html__( '→ Open Dashboard', 't1-schema' ) . '</span>',
             'href'   => admin_url( 'admin.php?page=t1-schema' ),
         ] );
     }

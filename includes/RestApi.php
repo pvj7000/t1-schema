@@ -223,7 +223,7 @@ class RestApi {
         global $wpdb;
         $table = $wpdb->prefix . 't1schema_globals';
 
-        $rows = $wpdb->get_results( "SELECT * FROM {$table} ORDER BY created_at DESC", ARRAY_A ); // phpcs:ignore
+        $rows = $wpdb->get_results( "SELECT * FROM {$table} ORDER BY created_at DESC", ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name from $wpdb->prefix, no user input.
 
         $items = array_map( function ( array $row ): array {
             $row['schema_data'] = json_decode( $row['schema_data'], true );
@@ -746,7 +746,7 @@ class RestApi {
         global $wpdb;
         $table = $wpdb->prefix . 't1schema_rules';
 
-        $rows = $wpdb->get_results( "SELECT * FROM {$table} ORDER BY priority ASC, created_at DESC", ARRAY_A ); // phpcs:ignore
+        $rows = $wpdb->get_results( "SELECT * FROM {$table} ORDER BY priority ASC, created_at DESC", ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name from $wpdb->prefix, no user input.
 
         $items = array_map( function ( array $row ): array {
             $row['id']          = (int) $row['id'];
@@ -915,7 +915,7 @@ class RestApi {
         $all_rules   = [];
 
         if ( $rules_exist ) {
-            $rows = $wpdb->get_results( "SELECT * FROM {$rules_table} WHERE status = 'active'", ARRAY_A ); // phpcs:ignore
+            $rows = $wpdb->get_results( "SELECT * FROM {$rules_table} WHERE status = 'active'", ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name from $wpdb->prefix, no user input.
             foreach ( (array) $rows as $row ) {
                 $all_rules[] = [
                     'id'          => (int) $row['id'],
@@ -1071,7 +1071,7 @@ class RestApi {
 
         // --- Coverage (40%) ---
         $r_table = $wpdb->prefix . 't1schema_rules';
-        $rules   = $wpdb->get_results( "SELECT conditions, schema_type FROM {$r_table} WHERE status = 'active'", ARRAY_A ) ?: [];
+        $rules   = $wpdb->get_results( "SELECT conditions, schema_type FROM {$r_table} WHERE status = 'active'", ARRAY_A ) ?: []; // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
         $contexts = [];
         $post_types = get_post_types( [ 'public' => true ], 'objects' );
@@ -1101,7 +1101,7 @@ class RestApi {
         }
         // Globals always cover singular pages.
         $g_table = $wpdb->prefix . 't1schema_globals';
-        $global_count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$g_table} WHERE status = 'active'" );
+        $global_count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$g_table} WHERE status = 'active'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         if ( $global_count > 0 ) {
             $covered_contexts = max( $covered_contexts, 1 ); // At least front page covered.
         }
@@ -1110,11 +1110,11 @@ class RestApi {
 
         // --- Health (30%) ---
         $all_schemas = [];
-        $globals = $wpdb->get_results( "SELECT schema_data FROM {$g_table} WHERE status = 'active'", ARRAY_A ) ?: [];
+        $globals = $wpdb->get_results( "SELECT schema_data FROM {$g_table} WHERE status = 'active'", ARRAY_A ) ?: []; // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         foreach ( $globals as $r ) {
             $all_schemas[] = json_decode( $r['schema_data'], true );
         }
-        $rule_rows = $wpdb->get_results( "SELECT schema_data FROM {$r_table} WHERE status = 'active'", ARRAY_A ) ?: [];
+        $rule_rows = $wpdb->get_results( "SELECT schema_data FROM {$r_table} WHERE status = 'active'", ARRAY_A ) ?: []; // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         foreach ( $rule_rows as $r ) {
             $all_schemas[] = json_decode( $r['schema_data'], true );
         }
@@ -1198,7 +1198,7 @@ class RestApi {
     public function get_recommended_rules( \WP_REST_Request $request ): \WP_REST_Response {
         global $wpdb;
         $r_table = $wpdb->prefix . 't1schema_rules';
-        $existing = $wpdb->get_results( "SELECT conditions, schema_type FROM {$r_table}", ARRAY_A ) ?: [];
+        $existing = $wpdb->get_results( "SELECT conditions, schema_type FROM {$r_table}", ARRAY_A ) ?: []; // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
         $templates = $this->get_rule_templates();
 

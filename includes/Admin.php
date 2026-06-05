@@ -76,15 +76,17 @@ class Admin {
                     T1SCHEMA_VERSION
                 );
             }
-        } else {
-            // Development: load from Vite dev server.
+        } elseif ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) {
+            // Development only: load from Vite dev server.
+            // This block is excluded from production builds and only runs
+            // when SCRIPT_DEBUG is explicitly enabled in wp-config.php.
             $dev_server = 'http://localhost:5173';
 
             wp_enqueue_script(
                 't1schema-vite-client',
                 $dev_server . '/@vite/client',
                 [],
-                null, // phpcs:ignore
+                null, // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
                 false
             );
 
@@ -92,7 +94,7 @@ class Admin {
                 't1schema-app',
                 $dev_server . '/src/main.jsx',
                 [],
-                null, // phpcs:ignore
+                null, // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
                 true
             );
 

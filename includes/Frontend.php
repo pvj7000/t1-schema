@@ -360,7 +360,20 @@ class Frontend {
             ];
         }
 
-        $json = wp_json_encode( $json_data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
-        return $json ? '<script type="application/ld+json" id="t1schema-jsonld">' . $json . '</script>' : '';
+        $json = wp_json_encode( $json_data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG );
+
+        if ( ! $json ) {
+            return '';
+        }
+
+        /**
+         * Filters the complete JSON-LD output HTML.
+         *
+         * @since 1.0.0
+         * @param string $html    The full <script> tag.
+         * @param array  $schemas Array of schema data objects.
+         */
+        $html = '<script type="application/ld+json" id="t1schema-jsonld">' . $json . '</script>';
+        return apply_filters( 't1schema_jsonld_output', $html, $items ?? [ $json_data ] );
     }
 }

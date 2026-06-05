@@ -1,0 +1,122 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the t1 Schema package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: t1 Schema 1.5.0\n"
+"Report-Msgid-Bugs-To: https://teil1.de\n"
+"POT-Creation-Date: 2026-06-05 14:26+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: includes/Admin.php:25 includes/Admin.php:26
+msgid "t1 Schema"
+msgstr ""
+
+#: includes/AdminBar.php:74
+#, php-format
+msgid "t1 Schema: %d active schema(s) on this page"
+msgstr ""
+
+#: includes/AdminBar.php:84
+msgid "No schemas active on this page"
+msgstr ""
+
+#: includes/AdminBar.php:99
+#, php-format
+msgid "%d props"
+msgstr ""
+
+#: includes/AdminBar.php:109
+msgid "→ Open Dashboard"
+msgstr ""
+
+#: includes/CLI.php:584 includes/CLI.php:647
+#, php-format
+msgid "Summary: %d schema(s), %d error(s), %d warning(s)."
+msgstr ""
+
+#: includes/CLI.php:639
+#, php-format
+msgid "Health for \"%s\" (ID: %d):"
+msgstr ""
+
+#: includes/CLI.php:1379
+#, php-format
+msgid "Total: %d schema(s) for \"%s\" (ID: %d)."
+msgstr ""
+
+#: includes/MetaBox.php:40
+msgid "🔮 t1 Schema — Local Schemas"
+msgstr ""
+
+#: includes/MetaBox.php:115
+msgid "↑ Overrides global"
+msgstr ""
+
+#: includes/MetaBox.php:115
+msgid "∥ Coexists with global"
+msgstr ""
+
+#: includes/MetaBox.php:122
+msgid "No local schemas on this page."
+msgstr ""
+
+#: includes/MetaBox.php:122
+msgid "Global schemas still apply."
+msgstr ""
+
+#: includes/MetaBox.php:127
+msgid "Quick Add Schema"
+msgstr ""
+
+#: includes/MetaBox.php:130
+msgid "Select type…"
+msgstr ""
+
+#: includes/MetaBox.php:141
+msgid "Open Full Editor →"
+msgstr ""
+
+#: includes/SchemaValidator.php:37
+msgid "Missing required @type property."
+msgstr ""
+
+#: includes/SchemaValidator.php:54
+#, php-format
+msgid ""
+"Type '%s' is a valid custom Schema.org type. Property validation is skipped."
+msgstr ""
+
+#: includes/SchemaValidator.php:60
+#, php-format
+msgid "Type '%s' is not recognized as a valid Schema.org type."
+msgstr ""
+
+#: includes/SchemaValidator.php:87
+#, php-format
+msgid "Missing required property: '%1$s' for type '%2$s'."
+msgstr ""
+
+#: includes/SchemaValidator.php:108
+#, php-format
+msgid ""
+"Missing recommended property: '%1$s' for type '%2$s'. May be set per-post."
+msgstr ""
+
+#: includes/SchemaValidator.php:115
+#, php-format
+msgid "Missing recommended property: '%1$s' for type '%2$s'."
+msgstr ""
+
+#: includes/SchemaValidator.php:126
+msgid "Missing @context. Will be added automatically at output."
+msgstr ""

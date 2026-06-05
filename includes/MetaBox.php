@@ -37,7 +37,7 @@ class MetaBox {
 
             add_meta_box(
                 't1schema-local-schemas',
-                '🔮 t1 Schema — Local Schemas',
+                __( '🔮 t1 Schema — Local Schemas', 't1-schema' ),
                 [ $this, 'render' ],
                 $post_type,
                 'side',
@@ -103,7 +103,7 @@ class MetaBox {
                         echo '<div class="t1schema-metabox__issue t1schema-metabox__issue--warning">⚠ ' . esc_html( $warn ) . '</div>';
                     }
                     if ( $warn_cnt > 3 ) {
-                        echo '<div class="t1schema-metabox__issue t1schema-metabox__issue--warning">… and ' . ( $warn_cnt - 3 ) . ' more</div>';
+                        echo '<div class="t1schema-metabox__issue t1schema-metabox__issue--warning">… and ' . esc_html( $warn_cnt - 3 ) . ' more</div>';
                     }
                     foreach ( array_slice( $health['infos'], 0, 3 ) as $info ) {
                         echo '<div class="t1schema-metabox__issue t1schema-metabox__issue--info">ℹ ' . esc_html( $info ) . '</div>';
@@ -112,22 +112,22 @@ class MetaBox {
                 }
 
                 echo '<div class="t1schema-metabox__item-meta">';
-                echo $override ? '<span class="t1schema-metabox__flag">↑ Overrides global</span>' : '<span class="t1schema-metabox__flag">∥ Coexists with global</span>';
-                echo '<button type="button" class="t1schema-metabox__remove" data-index="' . $i . '" title="Remove this schema">×</button>';
+                echo $override ? '<span class="t1schema-metabox__flag">' . esc_html__( '↑ Overrides global', 't1-schema' ) . '</span>' : '<span class="t1schema-metabox__flag">' . esc_html__( '∥ Coexists with global', 't1-schema' ) . '</span>';
+                echo '<button type="button" class="t1schema-metabox__remove" data-index="' . esc_attr( $i ) . '" title="Remove this schema">×</button>';
                 echo '</div>';
                 echo '</div>';
             }
             echo '</div>';
         } else {
-            echo '<p class="t1schema-metabox__empty">No local schemas on this page.<br>Global schemas still apply.</p>';
+            echo '<p class="t1schema-metabox__empty">' . esc_html__( 'No local schemas on this page.', 't1-schema' ) . '<br>' . esc_html__( 'Global schemas still apply.', 't1-schema' ) . '</p>';
         }
 
         // Quick-add form.
         echo '<div class="t1schema-metabox__add">';
-        echo '<label class="t1schema-metabox__add-label">Quick Add Schema</label>';
+        echo '<label class="t1schema-metabox__add-label">' . esc_html__( 'Quick Add Schema', 't1-schema' ) . '</label>';
         echo '<div class="t1schema-metabox__add-row">';
         echo '<select name="t1schema_quick_add_type" class="t1schema-metabox__select">';
-        echo '<option value="">Select type…</option>';
+        echo '<option value="">' . esc_html__( 'Select type…', 't1-schema' ) . '</option>';
         foreach ( $type_names as $type ) {
             echo '<option value="' . esc_attr( $type ) . '">' . esc_html( $type ) . '</option>';
         }
@@ -138,7 +138,7 @@ class MetaBox {
         // Link to full editor.
         echo '<div class="t1schema-metabox__footer">';
         echo '<a href="' . esc_url( $admin_url ) . '" class="t1schema-metabox__link" target="_blank">';
-        echo 'Open Full Editor →';
+        echo esc_html__( 'Open Full Editor →', 't1-schema' );
         echo '</a>';
         echo '</div>';
 

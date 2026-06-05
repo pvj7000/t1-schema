@@ -1,0 +1,31 @@
+# Files and directories to exclude from plugin distribution zip.
+# Used by wp-cli's `wp dist-archive` or custom build scripts.
+
+# Version control
+.git
+.gitignore
+.github
+
+# Development source & build tools
+admin/node_modules/
+admin/src/
+admin/package.json
+admin/package-lock.json
+admin/vite.config.js
+admin/.vite/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Internal docs (readme.txt is the public-facing doc)
+DOCUMENTATION.md
+
+# Distribution config
+.distignore
