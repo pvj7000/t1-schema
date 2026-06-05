@@ -93,7 +93,7 @@ class CLI {
      *
      * ## EXAMPLES
      *
-     *     wp t1-schema create Organization --name="teil1" --url="https://teil1.de"
+     *     wp t1-schema create Organization --name="My Company" --url="https://example.com"
      *     wp t1-schema create Article --json-file=article-schema.json
      *     wp t1-schema create WebSite --name="My Site" --url="https://example.com"
      *
@@ -778,7 +778,7 @@ class CLI {
      *
      *     wp t1-schema set-var phone "+43 1 234 5678"
      *     wp t1-schema set-var address "Musterstraße 1, 1010 Wien"
-     *     wp t1-schema set-var logo_url "https://teil1.de/logo.svg"
+     *     wp t1-schema set-var logo_url "https://example.com/logo.svg"
      *
      * @subcommand set-var
      */
@@ -1135,7 +1135,7 @@ class CLI {
      * ## EXAMPLES
      *
      *     wp t1-schema add-rule Article --conditions='[{"type":"singular","value":"post"}]' --json='{"headline":"{{post_title}}"}'
-     *     wp t1-schema add-rule CollectionPage --conditions='[{"type":"archive","value":"teil1_referenz"}]' --name="Referenz Archive"
+     *     wp t1-schema add-rule CollectionPage --conditions='[{"type":"archive","value":"portfolio"}]' --name="Portfolio Archive"
      *
      * @subcommand add-rule
      */

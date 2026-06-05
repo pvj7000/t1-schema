@@ -371,7 +371,7 @@
     "parent": "CreativeWork",
     "description": "A set of defined terms — a glossary, taxonomy, or controlled vocabulary.",
     "properties": {
-      "name": { "type": "Text", "required": true, "recommended": true, "description": "Name of the term set (e.g. 'Marketing Lexikon')." },
+      "name": { "type": "Text", "required": true, "recommended": true, "description": "Name of the term set (e.g. 'SEO Glossary')." },
       "description": { "type": "Text", "required": false, "recommended": true, "description": "Description of the glossary." },
       "url": { "type": "URL", "required": false, "recommended": true, "description": "URL of the term set page." },
       "hasDefinedTerm": { "type": "DefinedTerm[]", "required": false, "recommended": false, "description": "Terms in this set." }
