@@ -97,15 +97,15 @@ class Admin {
                 null, // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
                 true
             );
-
-            // Vite client needs type="module".
-            add_filter( 'script_loader_tag', function ( string $tag, string $handle ) {
-                if ( in_array( $handle, [ 't1schema-vite-client', 't1schema-app' ], true ) ) {
-                    return str_replace( ' src=', ' type="module" src=', $tag );
-                }
-                return $tag;
-            }, 10, 2 );
         }
+
+        // Vite outputs ES modules — add type="module" to all t1schema scripts.
+        add_filter( 'script_loader_tag', function ( string $tag, string $handle ) {
+            if ( in_array( $handle, [ 't1schema-vite-client', 't1schema-app' ], true ) ) {
+                return str_replace( ' src=', ' type="module" src=', $tag );
+            }
+            return $tag;
+        }, 10, 2 );
 
         // Localize config for the React app.
         wp_localize_script( 't1schema-app', 't1SchemaConfig', [
