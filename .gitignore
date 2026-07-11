@@ -1,3 +1,6 @@
+# Build output (generated locally and in CI)
+dist/
+
 # Dependencies (dev only — not part of plugin distribution)
 admin/node_modules/
 

@@ -7,12 +7,7 @@
 .github
 
 # Development source & build tools
-admin/node_modules/
-admin/src/
-admin/package.json
-admin/package-lock.json
-admin/vite.config.js
-admin/.vite/
+admin/
 
 # OS files
 .DS_Store
@@ -29,6 +24,8 @@ DOCUMENTATION.md
 
 # Distribution config
 .distignore
+bin/
+dist/
 
 # WP.org SVN assets (uploaded separately, not in plugin zip)
 .wordpress-org/
