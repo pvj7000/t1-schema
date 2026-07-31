@@ -2,6 +2,10 @@
 
 namespace T1Schema;
 
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+
 /**
  * REST API endpoints for t1 Schema.
  *
@@ -690,6 +694,7 @@ class RestApi {
     public function get_settings( \WP_REST_Request $request ): \WP_REST_Response {
         return new \WP_REST_Response( [
             'delete_data_on_uninstall' => (bool) get_option( 't1schema_delete_data_on_uninstall', false ),
+            'suppress_conflicts'       => (bool) get_option( 't1schema_suppress_conflicts', false ),
             'version'                  => T1SCHEMA_VERSION,
             'db_version'               => get_option( 't1schema_db_version', '0' ),
         ], 200 );
@@ -700,6 +705,10 @@ class RestApi {
 
         if ( isset( $body['delete_data_on_uninstall'] ) ) {
             update_option( 't1schema_delete_data_on_uninstall', (bool) $body['delete_data_on_uninstall'] );
+        }
+
+        if ( isset( $body['suppress_conflicts'] ) ) {
+            update_option( 't1schema_suppress_conflicts', (bool) $body['suppress_conflicts'] );
         }
 
         return $this->get_settings( $request );

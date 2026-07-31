@@ -2,6 +2,10 @@
 
 namespace T1Schema;
 
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+
 /**
  * Handles plugin activation.
  *
@@ -84,6 +88,7 @@ class Activator {
      */
     private function set_default_options(): void {
         add_option( 't1schema_delete_data_on_uninstall', false );
+        add_option( 't1schema_suppress_conflicts', false );
         add_option( 't1schema_db_version', T1SCHEMA_DB_VERSION );
     }
 

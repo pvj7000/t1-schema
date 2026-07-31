@@ -1,11 +1,13 @@
 import React from 'react';
-import { useVariables } from '../../hooks/useSchema';
+import { useVariables, useSettings, useUpdateSettings } from '../../hooks/useSchema';
 
 /**
  * HelpPanel — Documentation for variables, usage guide, and tips.
  */
 export default function HelpPanel() {
   const { data: variables = {} } = useVariables();
+  const { data: settings } = useSettings();
+  const updateSettings = useUpdateSettings();
 
   const categoryMeta = {
     post: { icon: '📄', title: 'Post / Page Variables', desc: 'Dynamic data from the current post or page' },
@@ -139,7 +141,48 @@ export default function HelpPanel() {
           })}
         </div>
       </div>
+
+      {/* Settings */}
+      <div className="sp-rounded-xl sp-border sp-border-surface-3 sp-bg-white sp-shadow-bento">
+        <div className="sp-border-b sp-border-surface-2 sp-px-6 sp-py-4">
+          <h2 className="sp-text-base sp-font-semibold sp-text-ink-0">⚙️ Settings</h2>
+        </div>
+        <div className="sp-divide-y sp-divide-surface-2">
+          <SettingToggle
+            label="Suppress conflicting schema output"
+            desc="Removes JSON-LD emitted by other plugins that would duplicate what t1 Schema outputs. Leave this off unless you actually see duplicate structured data on your pages."
+            checked={!!settings?.suppress_conflicts}
+            disabled={!settings || updateSettings.isPending}
+            onChange={(value) => updateSettings.mutate({ suppress_conflicts: value })}
+          />
+          <SettingToggle
+            label="Delete all data on uninstall"
+            desc="When the plugin is deleted, drop its database tables, options, and per-page schemas. Off means your schemas survive a reinstall."
+            checked={!!settings?.delete_data_on_uninstall}
+            disabled={!settings || updateSettings.isPending}
+            onChange={(value) => updateSettings.mutate({ delete_data_on_uninstall: value })}
+          />
+        </div>
+      </div>
     </div>
+  );
+}
+
+function SettingToggle({ label, desc, checked, disabled, onChange }) {
+  return (
+    <label className="sp-flex sp-cursor-pointer sp-items-start sp-gap-3 sp-px-6 sp-py-4">
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.checked)}
+        className="sp-mt-0.5 sp-h-4 sp-w-4 sp-flex-shrink-0 sp-cursor-pointer sp-rounded sp-border-surface-3 sp-text-brand-600"
+      />
+      <span>
+        <span className="sp-block sp-text-sm sp-font-medium sp-text-ink-0">{label}</span>
+        <span className="sp-mt-0.5 sp-block sp-text-xs sp-leading-relaxed sp-text-ink-2">{desc}</span>
+      </span>
+    </label>
   );
 }
 

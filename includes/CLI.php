@@ -2,6 +2,10 @@
 
 namespace T1Schema;
 
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+
 /**
  * WP-CLI commands for t1 Schema.
  *
@@ -1327,6 +1331,9 @@ class CLI {
 
         // --- Context Mocking ---
         // We MUST simulate a frontend request so ContextDetector can evaluate rules properly.
+        $original_query = $wp_query;
+        $original_post  = $post;
+
         $post = $_post;
         setup_postdata( $post );
         
@@ -1378,9 +1385,10 @@ class CLI {
         \WP_CLI::log( '' );
         \WP_CLI::log( sprintf( 'Total: %d schema(s) for "%s" (ID: %d).', count( $merged ), $post->post_title, $post_id ) );
         
-        // Reset query to be safe
+        // Restore the global query state we replaced above.
+        $wp_query = $original_query;
+        $post     = $original_post;
         wp_reset_postdata();
-        wp_reset_query();
     }
 
     /**
@@ -1532,7 +1540,11 @@ class CLI {
             }
         }
         if ( function_exists( 'teil1_schema_output' ) ) {
-            \WP_CLI::log( '   ⚠ teil1_schema_output() function detected — t1 Schema suppresses it' );
+            $suppressing = (bool) get_option( 't1schema_suppress_conflicts', false );
+            \WP_CLI::log( $suppressing
+                ? '   ⚠ teil1_schema_output() detected — suppression is ON, t1 Schema removes it'
+                : '   ⚠ teil1_schema_output() detected — suppression is OFF, enable it in Settings if you see duplicates'
+            );
             $found_conflict = true;
         }
         if ( ! $found_conflict ) {

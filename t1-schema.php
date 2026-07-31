@@ -3,7 +3,7 @@
  * Plugin Name:       t1 Schema
  * Plugin URI:        https://teil1.de/t1-schema
  * Description:       High-performance Schema.org JSON-LD markup with granular control. SaaS-grade visual editor for SEO professionals.
- * Version:           1.5.0
+ * Version:           2.0.0
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Author:            teil1 development
@@ -22,7 +22,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Plugin constants.
  */
-define( 'T1SCHEMA_VERSION', '1.5.0' );
+define( 'T1SCHEMA_VERSION', '2.0.0' );
+// Tracks the table schema, not the release. Bump only when tables change.
 define( 'T1SCHEMA_DB_VERSION', '1.5.0' );
 define( 'T1SCHEMA_FILE', __FILE__ );
 define( 'T1SCHEMA_PATH', plugin_dir_path( __FILE__ ) );
@@ -71,9 +72,6 @@ register_deactivation_hook( __FILE__, function () {
  */
 add_action( 'plugins_loaded', function () {
 
-    // Load translations.
-    load_plugin_textdomain( 't1-schema', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
-
     // Auto-migrate: create new tables if DB version is outdated.
     $current_db = get_option( 't1schema_db_version', '0' );
     if ( version_compare( $current_db, T1SCHEMA_DB_VERSION, '<' ) ) {
@@ -106,14 +104,12 @@ add_action( 'plugins_loaded', function () {
     }
 
     /**
-     * mu-plugin conflict suppression.
+     * Conflict suppression.
      *
-     * If teil1-content's schema output is active, suppress it
-     * to prevent duplicate JSON-LD in <head>. t1 Schema is the
-     * canonical source once activated.
-     *
-     * Filterable: return false from 't1schema_suppress_conflicts'
-     * to disable automatic suppression.
+     * When enabled, removes another plugin's schema output so the page does
+     * not end up with duplicate JSON-LD in <head>. Opt-in only: it is off
+     * until the site owner turns it on in Settings, because it changes the
+     * behaviour of software t1 Schema does not own.
      *
      * @since 1.0.0
      */
@@ -122,9 +118,9 @@ add_action( 'plugins_loaded', function () {
          * Whether to suppress conflicting schema output from other plugins.
          *
          * @since 1.5.0
-         * @param bool $suppress Default true.
+         * @param bool $suppress Defaults to the 't1schema_suppress_conflicts' option (off).
          */
-        if ( apply_filters( 't1schema_suppress_conflicts', true ) ) {
+        if ( apply_filters( 't1schema_suppress_conflicts', (bool) get_option( 't1schema_suppress_conflicts', false ) ) ) {
             if ( function_exists( 'teil1_schema_output' ) ) {
                 remove_action( 'wp_head', 'teil1_schema_output' );
             }
