@@ -2,6 +2,10 @@
 
 namespace T1Schema;
 
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+
 /**
  * Frontend JSON-LD output handler.
  *
@@ -51,8 +55,8 @@ class Frontend {
             }
         } catch ( \Throwable $e ) {
             // Never crash the frontend. Log and continue.
-            error_log( '[t1 Schema] render_jsonld error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() );
             if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+                error_log( '[t1 Schema] render_jsonld error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
                 echo '<!-- t1 Schema error: ' . esc_html( $e->getMessage() ) . ' -->' . "\n";
             }
         }
