@@ -2,9 +2,9 @@
 Contributors: pvj7000
 Tags: schema, json-ld, structured-data, seo, rich-snippets
 Requires at least: 6.0
-Tested up to: 6.8
+Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 1.5.0
+Stable tag: 2.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -29,7 +29,7 @@ t1 Schema is a Schema.org JSON-LD plugin for WordPress that gives you granular c
 * **Health Validation** — Every schema is validated against its type definition. Errors, warnings, and fix suggestions are shown inline.
 * **Site Map** — Hierarchical view of every URL context on your site with schema coverage indicators and one-click rule creation.
 * **Recommended Templates** — Sensible default rules (Article for posts, WebPage for pages, etc.) that you opt into — never auto-activated.
-* **22 Built-In Schema Types** — Organization, Article, Product, FAQPage, HowTo, Event, VideoObject, Service, and more.
+* **33 Built-In Schema Types** — Organization, Article, Product, FAQPage, HowTo, Event, VideoObject, Service, and more.
 * **WP-CLI** — Full command suite: create, inspect, render, health-check, export, import, coverage audit, and diagnostics.
 * **Admin Bar Indicator** — Shows active schema count on frontend pages with a dropdown listing each type.
 * **Post Editor Meta Box** — Compact sidebar panel showing local schemas, health badges, and quick-add dropdown.
@@ -101,8 +101,18 @@ Yes. Use `wp t1-schema export` and `wp t1-schema import` via WP-CLI, or export t
 
 == Changelog ==
 
+= 2.0.0 =
+* First release on the WordPress.org Plugin Directory.
+* **Breaking:** Conflict suppression is now opt-in and disabled by default. Previously t1 Schema removed another plugin's schema output automatically. Enable it under Help → Settings if you see duplicate JSON-LD.
+* Feature: Settings panel in the Help tab, covering conflict suppression and data removal on uninstall.
+* Fix: Uninstall now drops the schema rules table alongside the globals table.
+* Security: Direct-access guards added to every PHP file.
+* Security: Meta box form input is unslashed before sanitizing.
+* Improvement: Removed the `?t1debug` diagnostic panel from the admin screen. Use `wp t1-schema doctor` instead.
+* Improvement: Tested against WordPress 7.0.
+
 = 1.5.0 =
-* WordPress.org directory release — security hardening, i18n, readme, and compliance.
+* Security hardening, i18n, readme, and directory-compliance groundwork.
 * Fix: Health validator false positives for CollectionPage types.
 * Fix: Context-aware validation — recommended property warnings downgraded to infos for rules.
 * Fix: Custom variables (`{{custom.*}}`) now resolve in admin preview panels.
@@ -122,7 +132,10 @@ Yes. Use `wp t1-schema export` and `wp t1-schema import` via WP-CLI, or export t
 = 1.4.6 =
 * Initial release. Recursive schema builder with visual editor.
 
-== Upgrade Notices ==
+== Upgrade Notice ==
+
+= 2.0.0 =
+Conflict suppression is now opt-in. If you relied on t1 Schema removing another plugin's JSON-LD, enable it under Help → Settings after updating, or you may see duplicate structured data.
 
 = 1.5.0 =
 Security hardening and WordPress.org compliance. Recommended update for all users.

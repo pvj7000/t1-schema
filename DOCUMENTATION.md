@@ -1,6 +1,6 @@
 # t1 Schema — Documentation
 
-**Version:** 1.5.0  
+**Version:** 2.0.0  
 **Author:** teil1 development  
 **Requires:** WordPress 6.0+, PHP 8.0+  
 **License:** GPL v2 or later
@@ -53,7 +53,7 @@ All schema data is output as a single `<script type="application/ld+json">` tag 
 On first activation, the plugin:
 - Creates the `t1schema_globals` and `t1schema_rules` database tables
 - Seeds a default **Organization** and **WebSite** schema using your site name and URL
-- Suppresses any existing `teil1-content` mu-plugin schema output to prevent duplicates (filterable via `t1schema_suppress_conflicts`)
+- Leaves conflict suppression off — enable it under Help → Settings if another plugin emits duplicate JSON-LD
 
 ---
 
@@ -787,21 +787,21 @@ Rules are evaluated by `priority` number (ascending). Lower = fires first:
 
 ## mu-Plugin Conflict Handling
 
-t1 Schema automatically detects and suppresses known conflicting schema output functions to prevent duplicate JSON-LD in `<head>`:
+t1 Schema can remove known conflicting schema output functions to prevent duplicate JSON-LD in `<head>`. This is **opt-in and off by default**, because it changes the behaviour of software t1 Schema does not own. Enable it under **Help → Settings → Suppress conflicting schema output**.
 
 ```php
-// From t1-schema.php — filterable since v1.5.0
-if ( apply_filters( 't1schema_suppress_conflicts', true ) ) {
+// From t1-schema.php — reads the 't1schema_suppress_conflicts' option (default false)
+if ( apply_filters( 't1schema_suppress_conflicts', (bool) get_option( 't1schema_suppress_conflicts', false ) ) ) {
     if ( function_exists( 'teil1_schema_output' ) ) {
         remove_action( 'wp_head', 'teil1_schema_output' );
     }
 }
 ```
 
-This behavior is **filterable** — return `false` from the `t1schema_suppress_conflicts` filter to disable automatic suppression:
+The setting is also **filterable** — force it on or off in code regardless of the stored option:
 
 ```php
-add_filter( 't1schema_suppress_conflicts', '__return_false' );
+add_filter( 't1schema_suppress_conflicts', '__return_true' );
 ```
 
 **Action hook:** `t1schema_loaded` fires after initialization, so other plugins can detect that t1 Schema is active.
@@ -864,8 +864,8 @@ add_filter( 't1schema_author_url', function( $url, $post ) {
 // Disable auto-generated BreadcrumbList
 add_filter( 't1schema_auto_breadcrumbs', '__return_false' );
 
-// Disable automatic suppression of conflicting schema plugins
-add_filter( 't1schema_suppress_conflicts', '__return_false' );
+// Force suppression of conflicting schema plugins on, ignoring the stored setting
+add_filter( 't1schema_suppress_conflicts', '__return_true' );
 ```
 
 ### Action Hooks
@@ -938,7 +938,7 @@ t1-schema/
 │   ├── MetaBox.php              # Post editor sidebar panel
 │   └── CLI.php                  # WP-CLI command class
 ├── data/
-│   ├── schema-types.json        # Schema.org type registry (22 types)
+│   ├── schema-types.json        # Schema.org type registry (33 types)
 │   └── valid-types.json         # Full Schema.org type list for validation
 ├── languages/
 │   └── t1-schema.pot            # Translation template
