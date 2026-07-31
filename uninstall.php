@@ -17,14 +17,16 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 /**
  * Only wipe data if the user has explicitly opted in.
  */
-$delete_data = get_option( 't1schema_delete_data_on_uninstall', false );
+$t1schema_delete_data = get_option( 't1schema_delete_data_on_uninstall', false );
 
-if ( $delete_data ) {
+if ( $t1schema_delete_data ) {
     global $wpdb;
 
-    // 1. Drop the globals table.
-    $table_name = $wpdb->prefix . 't1schema_globals';
-    $wpdb->query( "DROP TABLE IF EXISTS {$table_name}" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL
+    // 1. Drop the plugin tables.
+    foreach ( [ 't1schema_globals', 't1schema_rules' ] as $t1schema_table ) {
+        $t1schema_table_name = $wpdb->prefix . $t1schema_table;
+        $wpdb->query( "DROP TABLE IF EXISTS {$t1schema_table_name}" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL
+    }
 
     // 2. Delete all post meta.
     $wpdb->query(
