@@ -54,36 +54,59 @@ msgstr ""
 msgid "Total: %d schema(s) for \"%s\" (ID: %d)."
 msgstr ""
 
-#: includes/MetaBox.php:40
+#: includes/MetaBox.php:44
 msgid "🔮 t1 Schema — Local Schemas"
 msgstr ""
 
-#: includes/MetaBox.php:115
-msgid "↑ Overrides global"
-msgstr ""
-
-#: includes/MetaBox.php:115
-msgid "∥ Coexists with global"
-msgstr ""
-
-#: includes/MetaBox.php:122
+#: includes/MetaBox.php:81
 msgid "No local schemas on this page."
 msgstr ""
 
-#: includes/MetaBox.php:122
+#: includes/MetaBox.php:81
 msgid "Global schemas still apply."
 msgstr ""
 
-#: includes/MetaBox.php:127
-msgid "Quick Add Schema"
+#: includes/MetaBox.php:87
+msgid "Add a schema →"
 msgstr ""
 
-#: includes/MetaBox.php:130
-msgid "Select type…"
+#: includes/MetaBox.php:88
+msgid "Edit in t1 Schema →"
 msgstr ""
 
-#: includes/MetaBox.php:141
-msgid "Open Full Editor →"
+#: includes/MetaBox.php:113
+#, php-format
+msgid "%d error"
+msgid_plural "%d errors"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/MetaBox.php:117
+#, php-format
+msgid "%d warning"
+msgid_plural "%d warnings"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/MetaBox.php:120
+msgid "Valid (Custom)"
+msgstr ""
+
+#: includes/MetaBox.php:123
+msgid "Valid"
+msgstr ""
+
+#: includes/MetaBox.php:143
+#, php-format
+msgid "… and %d more"
+msgstr ""
+
+#: includes/MetaBox.php:155
+msgid "↑ Overrides global"
+msgstr ""
+
+#: includes/MetaBox.php:156
+msgid "∥ Coexists with global"
 msgstr ""
 
 #: includes/SchemaValidator.php:37
