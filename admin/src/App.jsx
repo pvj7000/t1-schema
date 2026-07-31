@@ -23,11 +23,21 @@ const VIEWS = {
   RULE_EDITOR: 'rule_editor',
 };
 
+/**
+ * Post ID from `?t1_post=`, set by the post editor meta box link.
+ */
+function readLinkedPostId() {
+  const id = Number.parseInt(new URLSearchParams(window.location.search).get('t1_post') ?? '', 10);
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
+
 export default function App() {
-  const [activeTab, setActiveTab] = useState(TABS.DASHBOARD);
-  const [view, setView] = useState(VIEWS.TAB);
+  const linkedPostId = readLinkedPostId();
+
+  const [activeTab, setActiveTab] = useState(linkedPostId ? TABS.PAGES : TABS.DASHBOARD);
+  const [view, setView] = useState(linkedPostId ? VIEWS.LOCAL_EDITOR : VIEWS.TAB);
   const [editingSchema, setEditingSchema] = useState(null);
-  const [editingPost, setEditingPost] = useState(null);
+  const [editingPost, setEditingPost] = useState(linkedPostId ? { id: linkedPostId } : null);
   const [editingRule, setEditingRule] = useState(null);
 
   const handleEditGlobal = (schema) => {
@@ -66,6 +76,13 @@ export default function App() {
     setEditingPost(null);
     setEditingRule(null);
     setView(VIEWS.TAB);
+
+    // Drop ?t1_post= so reloading after Back does not reopen the editor.
+    const url = new URL(window.location.href);
+    if (url.searchParams.has('t1_post')) {
+      url.searchParams.delete('t1_post');
+      window.history.replaceState({}, '', url);
+    }
   };
 
   const tabs = [

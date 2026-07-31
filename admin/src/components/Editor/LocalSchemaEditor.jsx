@@ -166,7 +166,7 @@ export default function LocalSchemaEditor({ post, onBack }) {
           </span>
         </div>
         <div className="sp-flex-1">
-          <h2 className="sp-text-base sp-font-semibold sp-text-ink-0">{post.title}</h2>
+          <h2 className="sp-text-base sp-font-semibold sp-text-ink-0">{post.title || localData?.title || '…'}</h2>
           <p className="sp-text-xs sp-text-ink-3">{post.url}</p>
         </div>
         <a

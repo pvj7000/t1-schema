@@ -352,6 +352,7 @@ class RestApi {
 
         return new \WP_REST_Response( [
             'post_id' => $post_id,
+            'title'   => get_the_title( $post_id ),
             'schemas' => is_array( $schemas ) ? $schemas : [],
         ], 200 );
     }
