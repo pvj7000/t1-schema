@@ -2,6 +2,10 @@
 
 namespace T1Schema;
 
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+
 /**
  * Evaluates schema rule conditions against the current page context.
  *

@@ -2,6 +2,10 @@
 
 namespace T1Schema;
 
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+
 /**
  * Post editor meta box for t1 Schema.
  *
@@ -173,7 +177,7 @@ class MetaBox {
     public function save( int $post_id, \WP_Post $post ): void {
         // Verify nonce.
         if ( ! isset( $_POST['t1schema_meta_box_nonce'] ) ||
-             ! wp_verify_nonce( $_POST['t1schema_meta_box_nonce'], 't1schema_meta_box' ) ) {
+             ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['t1schema_meta_box_nonce'] ) ), 't1schema_meta_box' ) ) {
             return;
         }
 
@@ -189,7 +193,7 @@ class MetaBox {
         }
 
         // Handle removals.
-        $remove_indices = sanitize_text_field( $_POST['t1schema_remove_indices'] ?? '' );
+        $remove_indices = sanitize_text_field( wp_unslash( $_POST['t1schema_remove_indices'] ?? '' ) );
         if ( $remove_indices ) {
             $indices = array_map( 'intval', explode( ',', $remove_indices ) );
             $raw     = get_post_meta( $post_id, '_t1schema_local', true );
@@ -209,7 +213,7 @@ class MetaBox {
         }
 
         // Handle quick-add.
-        $quick_add_type = sanitize_text_field( $_POST['t1schema_quick_add_type'] ?? '' );
+        $quick_add_type = sanitize_text_field( wp_unslash( $_POST['t1schema_quick_add_type'] ?? '' ) );
         if ( $quick_add_type ) {
             $raw     = get_post_meta( $post_id, '_t1schema_local', true );
             $schemas = $raw ? ( is_string( $raw ) ? json_decode( $raw, true ) : $raw ) : [];

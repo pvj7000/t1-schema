@@ -2,6 +2,10 @@
 
 namespace T1Schema;
 
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+
 /**
  * Schema.org type registry.
  *
@@ -32,14 +36,14 @@ class SchemaRegistry {
             return;
         }
 
-        $data = json_decode( file_get_contents( $file ), true ); // phpcs:ignore
+        $data = wp_json_file_decode( $file, [ 'associative' => true ] );
         if ( is_array( $data ) ) {
             $this->types = $data;
         }
 
         $valid_file = T1SCHEMA_PATH . 'data/valid-types.json';
         if ( file_exists( $valid_file ) ) {
-            $valid_data = json_decode( file_get_contents( $valid_file ), true ); // phpcs:ignore
+            $valid_data = wp_json_file_decode( $valid_file, [ 'associative' => true ] );
             if ( is_array( $valid_data ) ) {
                 // Strip namespace prefixes (e.g. "schema:CollectionPage" → "CollectionPage")
                 // so lookups by unprefixed type name work correctly.

@@ -2,6 +2,10 @@
 
 namespace T1Schema;
 
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+
 /**
  * Resolves dynamic variable tags in schema data.
  *
@@ -358,6 +362,10 @@ class VariableResolver {
             $obj = get_queried_object();
             return ( $obj instanceof \WP_User ) ? get_author_posts_url( $obj->ID ) : '';
         }
-        return home_url( $_SERVER['REQUEST_URI'] ?? '/' );
+        $request_uri = isset( $_SERVER['REQUEST_URI'] )
+            ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) )
+            : '/';
+
+        return home_url( $request_uri );
     }
 }
