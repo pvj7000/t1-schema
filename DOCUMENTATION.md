@@ -1,6 +1,6 @@
 # t1 Schema — Documentation
 
-**Version:** 2.0.0  
+**Version:** 2.0.1  
 **Author:** teil1 development  
 **Requires:** WordPress 6.0+, PHP 8.0+  
 **License:** GPL v2 or later
@@ -339,18 +339,18 @@ The `_t1schema_meta` object is internal metadata stripped before rendering:
 
 When editing any post, page, or custom post type in the WordPress editor, a **🔮 t1 Schema — Local Schemas** panel appears in the sidebar.
 
+The panel is read-only. It answers "what structured data does this page emit, and is it healthy?" — everything editable lives in the full editor, so schema data has a single save path.
+
 **Features:**
 - Shows all active local schemas on the current post
 - Health badge per schema (Valid / Warnings / Errors)
 - Inline error/warning messages (first 3 shown)
 - Override indicator ("↑ Overrides global" or "∥ Coexists with global")
-- **Remove** button per schema (with visual strikethrough)
-- **Quick Add** dropdown — select a type and save. Common types auto-populate:
-  - Article → `{{post_title}}`, `{{post_date}}`, `{{post_modified}}`, `{{featured_image_url}}`
-  - BlogPosting → same as Article
-  - WebPage → `{{post_title}}`, `{{post_url}}`, `{{post_date}}`, `{{post_modified}}`
-  - Product → `{{post_title}}`, `{{featured_image_url}}`
-- **Open Full Editor →** link to the t1 Schema dashboard
+- **Edit in t1 Schema →** opens the full editor on this post's local schemas, via `admin.php?page=t1-schema&t1_post={ID}`. On a post with no local schemas the link reads **Add a schema →**.
+
+The panel registers no form fields and hooks nothing on `save_post`, so saving a post never writes schema data.
+
+> **Removed in 2.0.1.** Earlier versions had a Quick Add dropdown and per-schema Remove buttons. Both only took effect on post save, gave no feedback, and left the panel showing stale state until reload. Quick Add also emitted a bare `{"@type": "X"}` for the 29 types with no auto-population map, which failed validation immediately. Use the full editor instead.
 
 ---
 

@@ -4,7 +4,7 @@ Tags: schema, json-ld, structured-data, seo, rich-snippets
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 2.0.0
+Stable tag: 2.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,7 +32,7 @@ t1 Schema is a Schema.org JSON-LD plugin for WordPress that gives you granular c
 * **33 Built-In Schema Types** — Organization, Article, Product, FAQPage, HowTo, Event, VideoObject, Service, and more.
 * **WP-CLI** — Full command suite: create, inspect, render, health-check, export, import, coverage audit, and diagnostics.
 * **Admin Bar Indicator** — Shows active schema count on frontend pages with a dropdown listing each type.
-* **Post Editor Meta Box** — Compact sidebar panel showing local schemas, health badges, and quick-add dropdown.
+* **Post Editor Meta Box** — Compact sidebar panel showing the local schemas on the current post with health badges, and a link straight into the full editor for that post.
 * **`@graph` Pattern** — Multiple schemas on the same page are output in a single `<script>` tag using the `@graph` array.
 * **`@id`-Based Merging** — Schemas sharing the same `@id` are merged into a single node, eliminating duplicates.
 * **Auto BreadcrumbList** — Hierarchical pages with ancestors automatically get a BreadcrumbList schema.
@@ -101,6 +101,11 @@ Yes. Use `wp t1-schema export` and `wp t1-schema import` via WP-CLI, or export t
 
 == Changelog ==
 
+= 2.0.1 =
+* **Breaking:** The post editor meta box is now read-only. Quick Add and the per-schema remove buttons have been removed — both only applied on post save, gave no feedback, and Quick Add produced an empty schema that failed validation for most types. Editing happens in the full editor.
+* Feature: The meta box link opens the full editor on the schemas for that specific post instead of the dashboard.
+* Improvement: The local schema endpoint returns the post title, so a linked editor shows the right heading before anything else loads.
+
 = 2.0.0 =
 * First release on the WordPress.org Plugin Directory.
 * **Breaking:** Conflict suppression is now opt-in and disabled by default. Previously t1 Schema removed another plugin's schema output automatically. Enable it under Help → Settings if you see duplicate JSON-LD.
@@ -133,6 +138,9 @@ Yes. Use `wp t1-schema export` and `wp t1-schema import` via WP-CLI, or export t
 * Initial release. Recursive schema builder with visual editor.
 
 == Upgrade Notice ==
+
+= 2.0.1 =
+The post editor meta box is now read-only. Quick Add and the remove buttons are gone; use the "Edit in t1 Schema" link, which now opens the editor for that post. Existing local schemas are untouched.
 
 = 2.0.0 =
 Conflict suppression is now opt-in. If you relied on t1 Schema removing another plugin's JSON-LD, enable it under Help → Settings after updating, or you may see duplicate structured data.
