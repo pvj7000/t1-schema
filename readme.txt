@@ -93,11 +93,12 @@ Yes. Use `wp t1-schema export` and `wp t1-schema import` via WP-CLI, or export t
 
 == Screenshots ==
 
-1. Dashboard with Schema Quality Score and recommended rule templates.
-2. Rule Builder with condition selector and property editor.
-3. Global Schema Editor with live JSON-LD preview.
-4. Site Map showing coverage across all URL contexts.
-5. Post Editor meta box with health badges.
+1. Globals dashboard — Schema Quality Score, action items, and site-wide custom variables.
+2. Rule Builder — condition selector, property editor, and live JSON-LD output.
+3. Schema Rules — conditional templates targeting post types, archives, and taxonomies.
+4. Site Map — schema coverage across every URL context on the site.
+5. Pages & Posts — per-page local schema management.
+6. Help — the full dynamic variable reference.
 
 == Changelog ==
 
