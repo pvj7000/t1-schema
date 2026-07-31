@@ -32,10 +32,14 @@ fi
 
 echo "→ Building admin assets (v${VERSION})…"
 cd "${ROOT}/admin"
-if [[ -f package-lock.json ]]; then
-	npm ci
-else
-	npm install
+# CI always starts from a clean checkout; skip the reinstall when deps are
+# already present so local builds don't wipe node_modules.
+if [[ ! -d node_modules ]]; then
+	if [[ -f package-lock.json ]]; then
+		npm ci
+	else
+		npm install
+	fi
 fi
 npm run build
 

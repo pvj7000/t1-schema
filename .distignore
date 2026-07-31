@@ -21,6 +21,7 @@ Thumbs.db
 
 # Internal docs (readme.txt is the public-facing doc)
 DOCUMENTATION.md
+README.md
 
 # Distribution config
 .distignore
