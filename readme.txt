@@ -4,7 +4,7 @@ Tags: schema, json-ld, structured-data, seo, rich-snippets
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 8.0
-Stable tag: 2.0.1
+Stable tag: 2.0.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -101,6 +101,9 @@ Yes. Use `wp t1-schema export` and `wp t1-schema import` via WP-CLI, or export t
 6. Help — the full dynamic variable reference.
 
 == Changelog ==
+
+= 2.0.2 =
+* Fix: Corrected the plugin and author URLs. The previous domain did not resolve, so the plugin homepage and author links were dead.
 
 = 2.0.1 =
 * **Breaking:** The post editor meta box is now read-only. Quick Add and the per-schema remove buttons have been removed — both only applied on post save, gave no feedback, and Quick Add produced an empty schema that failed validation for most types. Editing happens in the full editor.

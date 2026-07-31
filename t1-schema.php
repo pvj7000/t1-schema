@@ -1,13 +1,13 @@
 <?php
 /**
  * Plugin Name:       t1 Schema
- * Plugin URI:        https://teil1.de/t1-schema
+ * Plugin URI:        https://github.com/pvj7000/t1-schema
  * Description:       High-performance Schema.org JSON-LD markup with granular control. SaaS-grade visual editor for SEO professionals.
- * Version:           2.0.1
+ * Version:           2.0.2
  * Requires at least: 6.0
  * Requires PHP:      8.0
  * Author:            teil1 development
- * Author URI:        https://teil1.de
+ * Author URI:        https://teil1.com
  * License:           GPL v2 or later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       t1-schema
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Plugin constants.
  */
-define( 'T1SCHEMA_VERSION', '2.0.1' );
+define( 'T1SCHEMA_VERSION', '2.0.2' );
 // Tracks the table schema, not the release. Bump only when tables change.
 define( 'T1SCHEMA_DB_VERSION', '1.5.0' );
 define( 'T1SCHEMA_FILE', __FILE__ );
